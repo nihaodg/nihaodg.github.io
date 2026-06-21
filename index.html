@@ -1,0 +1,4666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>独眼情报书签导航</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-sidebar: #ffffff;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --bg-active: #eff6ff;
+            --border-color: #e2e8f0;
+            --border-sidebar: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-light: #dbeafe;
+            --accent-glow: rgba(59, 130, 246, 0.12);
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+            --radius: 10px;
+            --radius-sm: 6px;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 布局 */
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-sidebar);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-search {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-sidebar);
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .sidebar-search input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .sidebar-search input::placeholder { color: var(--text-muted); }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-wrap::before {
+            content: '🔍';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            margin: 2px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: calc(100% - 24px);
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--bg-active);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 22px;
+            text-align: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: var(--bg-main);
+            padding: 2px 8px;
+            border-radius: 100px;
+            flex-shrink: 0;
+        }
+
+        .nav-item.active .nav-count {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-sidebar);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* 主内容区 */
+        .main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-height: 100vh;
+        }
+
+        .main-header {
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .main-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .main-title-icon {
+            margin-right: 8px;
+        }
+
+        .main-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .main-stats span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .main-content {
+            padding: 24px 32px 60px;
+            max-width: 1200px;
+        }
+
+        /* 链接卡片 */
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+        }
+
+        .link-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .link-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .link-favicon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            overflow: hidden;
+        }
+
+        .link-favicon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .link-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .link-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .link-url {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .link-arrow {
+            color: var(--text-muted);
+            opacity: 0;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+
+        .link-card:hover .link-arrow {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        /* 搜索结果 */
+        .search-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            bottom: 0;
+            background: var(--bg-body);
+            z-index: 90;
+            overflow-y: auto;
+        }
+
+        .search-overlay.active { display: block; }
+
+        .search-header {
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 51;
+        }
+
+        .search-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .search-content {
+            padding: 24px 32px;
+            max-width: 1200px;
+        }
+
+        .search-highlight {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            padding: 0 3px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        /* 子分类标签 */
+        .sub-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .sub-tag {
+            padding: 6px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sub-tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .sub-tag.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: fadeIn 0.35s ease forwards; }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .search-overlay { left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- 左侧导航栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo" onclick="showAll(); return false;">
+                    <div class="logo-icon">👁️</div>
+                    <span>独眼情报</span>
+                </a>
+            </div>
+            <div class="sidebar-search">
+                <div class="search-wrap">
+                    <input type="text" id="searchInput" placeholder="搜索所有书签..." oninput="handleSearch(this.value)">
+                </div>
+            </div>
+            <nav class="sidebar-nav" id="sidebarNav">
+                <!-- 动态生成 -->
+            </nav>
+            <div class="sidebar-footer">
+                <span id="footerStats">加载中...</span>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main">
+            <div class="main-header">
+                <div class="main-title" id="mainTitle">
+                    <span class="main-title-icon">📚</span>全部书签
+                </div>
+                <div class="main-stats">
+                    <span>📁 <span id="folderCount">0</span> 分类</span>
+                    <span>🔗 <span id="linkCount">0</span> 书签</span>
+                </div>
+            </div>
+            <div class="main-content" id="mainContent">
+                <!-- 动态内容 -->
+            </div>
+        </main>
+
+        <!-- 搜索覆盖层 -->
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-header">
+                <div class="search-title">🔍 搜索结果</div>
+            </div>
+            <div class="search-content">
+                <div class="links-grid" id="searchGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 书签数据
+        const bookmarkData = [
+  {
+    "name": "安全社区",
+    "type": "folder",
+    "items": [
+      {
+        "title": "技术文章 - 先知社区",
+        "url": "https://xz.aliyun.com/tab/1",
+        "type": "link"
+      },
+      {
+        "title": "奇安信攻防社区",
+        "url": "https://forum.butian.net/",
+        "type": "link"
+      },
+      {
+        "title": "跳跳糖",
+        "url": "https://tttang.com/",
+        "type": "link"
+      },
+      {
+        "title": "CT Stack 安全社区",
+        "url": "https://stack.chaitin.com/",
+        "type": "link"
+      },
+      {
+        "title": "网安 – 专业的网络安全产业、社区、媒体平台",
+        "url": "https://www.wangan.com/",
+        "type": "link"
+      },
+      {
+        "title": "助安社区 - 网络安全论坛",
+        "url": "https://secself.com/",
+        "type": "link"
+      },
+      {
+        "title": "深信服社区",
+        "url": "https://bbs.sangfor.com.cn/plugin.php?id=info:index#?orderby=dateline&type=index&page=1&init",
+        "type": "link"
+      },
+      {
+        "title": "门户 - Powered by Discuz!",
+        "url": "https://bbs.nightteam.cn/",
+        "type": "link"
+      },
+      {
+        "title": "inforsec.org/wp/",
+        "url": "https://www.inforsec.org/wp/",
+        "type": "link"
+      },
+      {
+        "title": "大蜘蛛®大蜘蛛反病毒软件由世界著名信息安全反病毒产品俄罗斯厂商Doctor Web公司出品。",
+        "url": "https://news.drweb.cn/list/?p=0&lng=cn&c=5",
+        "type": "link"
+      },
+      {
+        "title": "云涯历险记|我口袋只剩玫瑰一片 此行又山高路远",
+        "url": "https://www.yunyawu.com/",
+        "type": "link"
+      },
+      {
+        "title": "信息安全知识库 vipread.com",
+        "url": "https://vipread.com/",
+        "type": "link"
+      },
+      {
+        "title": "ATT&CK（对抗战术、技术和常识知识库）",
+        "url": "https://mbsse.antiy.cn/#/ewhiteboard/view-diagrams/12159af20c7e464fb151073c43325d15",
+        "type": "link"
+      },
+      {
+        "title": "#1 Trusted Latest Dark Web News - The Cyber Express",
+        "url": "https://thecyberexpress.com/firewall-daily/dark-web-news/",
+        "type": "link"
+      },
+      {
+        "title": "OSCS | 开源软件供应链安全社区 | 让每一个开源项目变得更安全",
+        "url": "https://www.oscs1024.com/cm",
+        "type": "link"
+      },
+      {
+        "title": "Segu-Info - 自 2000 年以来的网络安全",
+        "url": "https://blog.segu-info.com.ar/",
+        "type": "link"
+      },
+      {
+        "title": "[~]#棱角 ::Edge.Forum*",
+        "url": "https://forum.ywhack.com/today_security.php?action=all&time=yesterday",
+        "type": "link"
+      },
+      {
+        "title": "IT综合信息区 - 创意安天 - Powered by Discuz!",
+        "url": "https://bbs.antiy.cn/forum.php?mod=forumdisplay&fid=52",
+        "type": "link"
+      },
+      {
+        "title": "安全文摘 - 『代码审计』知识星球",
+        "url": "https://govuln.com/news/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "安全研究员",
+    "type": "folder",
+    "items": [
+      {
+        "title": "(20) 安坂星海 Azaka 🐼 VTuber (@AzakaSekai_) / X",
+        "url": "https://twitter.com/AzakaSekai_",
+        "type": "link"
+      },
+      {
+        "title": "doubleagent.net",
+        "url": "https://doubleagent.net/",
+        "type": "link"
+      },
+      {
+        "title": "主页 - Cyberplace",
+        "url": "https://cyberplace.social/home",
+        "type": "link"
+      },
+      {
+        "title": "Articles | Almost Secure",
+        "url": "https://palant.info/articles/",
+        "type": "link"
+      },
+      {
+        "title": "gynvael.coldwind//vx.log",
+        "url": "https://gynvael.coldwind.pl/?blog=1",
+        "type": "link"
+      },
+      {
+        "title": "Walmart Global Tech Blog – Medium",
+        "url": "https://medium.com/walmartglobaltech",
+        "type": "link"
+      },
+      {
+        "title": "FrogSec&#39;s Research Blog",
+        "url": "https://thefrogsec.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "gabe_k (@gabe_k@mastodon.social) - Mastodon",
+        "url": "https://mastodon.social/@gabe_k",
+        "type": "link"
+      },
+      {
+        "title": "博客 – Max Kersten",
+        "url": "https://maxkersten.nl/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Microsoft Sentinel Blog - Microsoft Community Hub",
+        "url": "https://techcommunity.microsoft.com/t5/microsoft-sentinel-blog/bg-p/MicrosoftSentinelBlog",
+        "type": "link"
+      },
+      {
+        "title": "白帽Wiki - 一个简单的wiki",
+        "url": "https://key08.com/",
+        "type": "link"
+      },
+      {
+        "title": "归档 - 进阶的胖闹-pwnull",
+        "url": "https://pwnull.github.io/archives/",
+        "type": "link"
+      },
+      {
+        "title": "vegvisir - Explore, Understand, Hack, Share",
+        "url": "https://v1k1ngfr.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Retr0&#39;s Register",
+        "url": "https://0reg.dev/blog",
+        "type": "link"
+      },
+      {
+        "title": "Decoder 的博客 – IT 安全提示和技巧",
+        "url": "https://decoder.cloud/",
+        "type": "link"
+      },
+      {
+        "title": "Pwning Tech - Learn to pwn modern tech",
+        "url": "https://pwning.tech/",
+        "type": "link"
+      },
+      {
+        "title": "Blogs on Information Technology, Network & Cybersecurity | Seqrite",
+        "url": "https://www.seqrite.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "0xbigshaq.github.io",
+        "url": "https://0xbigshaq.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Troy Hunt: Troy Hunt",
+        "url": "https://www.troyhunt.com/",
+        "type": "link"
+      },
+      {
+        "title": "Hacking Lab",
+        "url": "https://kaist-hacking.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Azr43lkn1ght",
+        "url": "https://azr43lkn1ght.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Home - SSD Secure Disclosure",
+        "url": "https://ssd-disclosure.com/",
+        "type": "link"
+      },
+      {
+        "title": "有价值炮灰",
+        "url": "https://evilpan.com/",
+        "type": "link"
+      },
+      {
+        "title": "Orange: CVE-2024-4577 - Yet Another PHP RCE: Make PHP-CGI Argument Injection Great Again!",
+        "url": "https://blog.orange.tw/2024/06/cve-2024-4577-yet-another-php-rce.html",
+        "type": "link"
+      },
+      {
+        "title": "Arseniy Sharoglazov",
+        "url": "https://mohemiv.com/",
+        "type": "link"
+      },
+      {
+        "title": "LeadroyaL&#39;s website",
+        "url": "https://leadroyal.cn/",
+        "type": "link"
+      },
+      {
+        "title": "FEEI - FEEI",
+        "url": "https://feei.cn/",
+        "type": "link"
+      },
+      {
+        "title": "文章归档 – Zgao&#39;s blog",
+        "url": "https://zgao.top/archives/",
+        "type": "link"
+      },
+      {
+        "title": "Security Research | mr.d0x",
+        "url": "https://mrd0x.com/",
+        "type": "link"
+      },
+      {
+        "title": "My Security Research - Master Bug Bounty Hunting: Your Guide to Breaking into Cybersecurity for Newcomers",
+        "url": "https://grumpz.net/series/security-research",
+        "type": "link"
+      },
+      {
+        "title": "Harel 安全研究 | 在这里您可以阅读我随着时间的推移收集的所有研究和技术！",
+        "url": "https://nokline.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Vin01’s Blog | A collection of tidbits which might do some good out there or at least be interesting for some of you.",
+        "url": "https://vin01.github.io/piptagole/",
+        "type": "link"
+      },
+      {
+        "title": "Home | Meta Red Team X",
+        "url": "https://rtx.meta.security/",
+        "type": "link"
+      },
+      {
+        "title": "PowerShell 团队 - 一次用一行代码实现世界自动化......",
+        "url": "https://devblogs.microsoft.com/powershell/",
+        "type": "link"
+      },
+      {
+        "title": "Tinyhack.com – 黑客出于热爱会做别人为了钱不会做的事情。",
+        "url": "https://tinyhack.com/",
+        "type": "link"
+      },
+      {
+        "title": "Sofiane&#39;s Blog",
+        "url": "https://blog.sofiane.cc/",
+        "type": "link"
+      },
+      {
+        "title": "CVE-2023-24871 - intro & vulnerability description",
+        "url": "https://ynwarcs.github.io/y-cve-2023-24871-intro-descr",
+        "type": "link"
+      },
+      {
+        "title": "SeRestorePrivilege - Pentest Party",
+        "url": "https://pentest.party/notes/windows/privilege-restore",
+        "type": "link"
+      },
+      {
+        "title": "0xdf hacks stuff | CTF solutions, malware analysis, home lab development",
+        "url": "https://0xdf.gitlab.io/",
+        "type": "link"
+      },
+      {
+        "title": "Posts | IT Security blog",
+        "url": "https://wojciechregula.blog/post/",
+        "type": "link"
+      },
+      {
+        "title": "Posts | stulle123&#39;s Blog",
+        "url": "https://stulle123.github.io/posts/",
+        "type": "link"
+      },
+      {
+        "title": "Home of Pierre",
+        "url": "https://pierrekim.github.io/index.html",
+        "type": "link"
+      },
+      {
+        "title": "Huli&#39;s blog",
+        "url": "https://blog.huli.tw/",
+        "type": "link"
+      },
+      {
+        "title": "Trail of Bits Blog",
+        "url": "https://blog.trailofbits.com/",
+        "type": "link"
+      },
+      {
+        "title": "Spaceraccoon&#39;s Blog",
+        "url": "https://spaceraccoon.dev/",
+        "type": "link"
+      },
+      {
+        "title": "Cyber Security Research",
+        "url": "https://santandersecurityresearch.github.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Doyensec&#39;s Blog",
+        "url": "https://blog.doyensec.com/",
+        "type": "link"
+      },
+      {
+        "title": "About | Syntax-Err0r",
+        "url": "https://syntax-err0r.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Security Tools - Security Cipher",
+        "url": "https://securitycipher.com/security-tools/",
+        "type": "link"
+      },
+      {
+        "title": "Home",
+        "url": "https://epcyber.com/home-1",
+        "type": "link"
+      },
+      {
+        "title": "安娜的档案",
+        "url": "https://zh.annas-archive.org/",
+        "type": "link"
+      },
+      {
+        "title": "Ribbit-ing Cybersecurity",
+        "url": "https://www.ribbiting-sec.info/",
+        "type": "link"
+      },
+      {
+        "title": "a security researcher and his projects",
+        "url": "https://jjensn.com/",
+        "type": "link"
+      },
+      {
+        "title": "创建RDP有效负载 – Ghost Wolf Lab – Research",
+        "url": "https://blog.ghostwolflab.com/vulnerability_research/597/",
+        "type": "link"
+      },
+      {
+        "title": "RedTeam Pentesting - Blog",
+        "url": "https://blog.redteam-pentesting.de/",
+        "type": "link"
+      },
+      {
+        "title": "clearbluejar",
+        "url": "https://clearbluejar.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "hyprblog | Vulnerability research, software development, and other technobabble.",
+        "url": "https://blog.coffinsec.com/",
+        "type": "link"
+      },
+      {
+        "title": "WHEREISK0SHL",
+        "url": "https://whereisk0shl.top/",
+        "type": "link"
+      },
+      {
+        "title": "Decoding Server Behavior: The Key to Mass Account Takeover | Sec-88",
+        "url": "https://sallam.gitbook.io/sec-88/write-ups/decoding-server-behavior-the-key-to-mass-account-takeover",
+        "type": "link"
+      },
+      {
+        "title": "Razz Security Blog -",
+        "url": "https://blog.razzsecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "Vozec&#39;s Blog - Researchs",
+        "url": "https://vozec.fr/researchs/",
+        "type": "link"
+      },
+      {
+        "title": "Lab539 博客 — Lab539",
+        "url": "https://www.lab539.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Archives - hackyboiz",
+        "url": "https://hackyboiz.github.io/archives/",
+        "type": "link"
+      },
+      {
+        "title": "博客 - Dana Epp 的博客",
+        "url": "https://danaepp.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "博客 - eva 的网站",
+        "url": "https://kibty.town/blog",
+        "type": "link"
+      },
+      {
+        "title": "StarkeBlog",
+        "url": "https://starkeblog.com/",
+        "type": "link"
+      },
+      {
+        "title": "Embrace The Red · Embrace The Red",
+        "url": "https://embracethered.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "evilsocket",
+        "url": "https://www.evilsocket.net/",
+        "type": "link"
+      },
+      {
+        "title": "Chen&#39;s Blog",
+        "url": "https://gh0st.cn/",
+        "type": "link"
+      },
+      {
+        "title": "Fox-IT International blog – News and opinions from Fox-IT",
+        "url": "https://blog.fox-it.com/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Sam Curry",
+        "url": "https://samcurry.net/",
+        "type": "link"
+      },
+      {
+        "title": "Blog",
+        "url": "https://www.da.vidbuchanan.co.uk/blog/",
+        "type": "link"
+      },
+      {
+        "title": "STAR Labs",
+        "url": "https://starlabs.sg/",
+        "type": "link"
+      },
+      {
+        "title": "Quarkslab&#39;s blog",
+        "url": "https://blog.quarkslab.com/",
+        "type": "link"
+      },
+      {
+        "title": "Archive | @nao_sec",
+        "url": "https://nao-sec.org/archive",
+        "type": "link"
+      },
+      {
+        "title": "帖子 | fj016",
+        "url": "https://fj016.fr/blog",
+        "type": "link"
+      },
+      {
+        "title": "ZwClose",
+        "url": "https://zwclose.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Sharp Security – Hacking, OSINT, Crypto",
+        "url": "https://sharpsec.run/",
+        "type": "link"
+      },
+      {
+        "title": "Mohamed Alzhrani",
+        "url": "https://0xmaz.me/",
+        "type": "link"
+      },
+      {
+        "title": "Deep Kondah",
+        "url": "https://www.deep-kondah.com/",
+        "type": "link"
+      },
+      {
+        "title": "DreyAnd&#39;s Web Security Blog",
+        "url": "https://dreyand.rs/",
+        "type": "link"
+      },
+      {
+        "title": "delroth 的主页",
+        "url": "https://delroth.net/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Sean Kahler",
+        "url": "https://battleda.sh/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog | DOGESEC",
+        "url": "https://www.dogesec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Mickey&#39;s Blogs – Exploring the world with my sword of debugger :)",
+        "url": "https://jhftss.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "博客 | STAR 实验室",
+        "url": "https://starlabs.sg/blog/",
+        "type": "link"
+      },
+      {
+        "title": "cat /dev/brain",
+        "url": "https://naehrdine.blogspot.com/",
+        "type": "link"
+      },
+      {
+        "title": "六角形 | 六角形",
+        "url": "https://www.hexacorn.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Didier Stevens | （博客“DidierStevens”）",
+        "url": "https://blog.didierstevens.com/",
+        "type": "link"
+      },
+      {
+        "title": "Home • Decrypt LOL",
+        "url": "https://decrypt.lol/",
+        "type": "link"
+      },
+      {
+        "title": "Denwp Research",
+        "url": "https://denwp.com/",
+        "type": "link"
+      },
+      {
+        "title": "Homepage - Exodus Intelligence",
+        "url": "https://blog.exodusintel.com/",
+        "type": "link"
+      },
+      {
+        "title": "ma4ter",
+        "url": "https://jeva.cc/",
+        "type": "link"
+      },
+      {
+        "title": "Jonathan&#39;s Blog",
+        "url": "https://beierle.win/",
+        "type": "link"
+      },
+      {
+        "title": "Haifei&#39;s random thoughts",
+        "url": "https://justhaifei1.blogspot.com/",
+        "type": "link"
+      },
+      {
+        "title": "李劼杰的博客",
+        "url": "https://www.lijiejie.com/",
+        "type": "link"
+      },
+      {
+        "title": "Hello sanshiOK | 网安人，网安魂! SECURITY GO! GO!! GO!!!",
+        "url": "https://sanshiok.com/",
+        "type": "link"
+      },
+      {
+        "title": "Home",
+        "url": "https://aibaranov.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "红队 – Practical Security Analytics LLC",
+        "url": "https://practicalsecurityanalytics.com/blog/red-team/",
+        "type": "link"
+      },
+      {
+        "title": "Random ASCII – tech blog of Bruce Dawson | Forecast for randomascii: programming, tech topics, with a chance of unicycling",
+        "url": "https://randomascii.wordpress.com/",
+        "type": "link"
+      },
+      {
+        "title": "deeb blog",
+        "url": "https://blog.deeb.ch/",
+        "type": "link"
+      },
+      {
+        "title": "attack ships on fire | Substack",
+        "url": "https://attackshipsonfi.re/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "OSINT",
+    "type": "folder",
+    "items": [
+      {
+        "title": "CTI 😎 - start.me",
+        "url": "https://start.me/p/rxRbpo/cti",
+        "type": "link"
+      },
+      {
+        "title": "终极开源情报合集 - start.me --- The Ultimate OSINT Collection - start.me",
+        "url": "https://start.me/p/DPYPMz/the-ultimate-osint-collection#tour",
+        "type": "link"
+      },
+      {
+        "title": "Todays news | OSINTer",
+        "url": "https://osinter.dk/feed/day/",
+        "type": "link"
+      },
+      {
+        "title": "WhatsMyName Web",
+        "url": "https://whatsmyname.app/",
+        "type": "link"
+      },
+      {
+        "title": "AaronCTI&#39;s OSINT Resource Collection - Google 云端硬盘",
+        "url": "https://docs.google.com/spreadsheets/u/0/d/1klugQqw6POlBtuzon8S0b18-gpsDwX-5OYRrB7TyNEw/htmlview",
+        "type": "link"
+      },
+      {
+        "title": "树人的小屋 - start.me",
+        "url": "https://start.me/p/m6Lrlv",
+        "type": "link"
+      },
+      {
+        "title": "丁爸网-首页",
+        "url": "http://dingba.top/",
+        "type": "link"
+      },
+      {
+        "title": "【网络迷踪】- 炒饭 - 世界那么大",
+        "url": "https://choa.fun/f/84",
+        "type": "link"
+      },
+      {
+        "title": "URLhaus | Browse",
+        "url": "https://urlhaus.abuse.ch/browse/",
+        "type": "link"
+      },
+      {
+        "title": "反诈骗联合实验室",
+        "url": "https://txwz.qq.com/wechat/search",
+        "type": "link"
+      },
+      {
+        "title": "OSINT Industries",
+        "url": "https://osint.industries/",
+        "type": "link"
+      },
+      {
+        "title": "User Searcher: Free tool to search username in network",
+        "url": "https://www.user-searcher.com/",
+        "type": "link"
+      },
+      {
+        "title": "查找数百万家公司的电子邮件地址格式",
+        "url": "https://www.email-format.com/",
+        "type": "link"
+      },
+      {
+        "title": "OSINT Industries | Powerful Tools for Accurate Investigations",
+        "url": "https://www.osint.industries/",
+        "type": "link"
+      },
+      {
+        "title": "WiGLE：无线网络映射",
+        "url": "https://wigle.net/",
+        "type": "link"
+      },
+      {
+        "title": "EPCYBER - Osint Dark Web, Darkweb Tips, China Osint",
+        "url": "https://epcyber.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "OSINT China Advanced",
+        "url": "https://epcyber.com/osint-china-advanced",
+        "type": "link"
+      },
+      {
+        "title": "10sint - Top 10 OSINT Tools",
+        "url": "https://10sint.com/",
+        "type": "link"
+      },
+      {
+        "title": "Telegram 频道和群组目录 / 俄罗斯 – TGStat",
+        "url": "https://tgstat.ru/en",
+        "type": "link"
+      },
+      {
+        "title": "情报X",
+        "url": "https://intelx.io/",
+        "type": "link"
+      },
+      {
+        "title": "Darkweb.vc",
+        "url": "https://darkweb.vc/",
+        "type": "link"
+      },
+      {
+        "title": "Cylect.io，终极 AI OSINT 工具。",
+        "url": "https://cylect.io/",
+        "type": "link"
+      },
+      {
+        "title": "Google Search Operators: The Complete List (44 Advanced Operators)",
+        "url": "https://ahrefs.com/blog/google-advanced-search-operators/",
+        "type": "link"
+      },
+      {
+        "title": "Blocklist Collection ¦ Firebog",
+        "url": "https://firebog.net/",
+        "type": "link"
+      },
+      {
+        "title": "Find public records and leaks - Library of Leaks",
+        "url": "https://search.libraryofleaks.org/",
+        "type": "link"
+      },
+      {
+        "title": "W3Techs - extensive and reliable web technology surveys",
+        "url": "https://w3techs.com/",
+        "type": "link"
+      },
+      {
+        "title": "FreshTools | Spam Tools | SMTP | SHELL | MAILER | cPanel | FTP | Combo List | Fresh RDP | Fresh Tools | Valid shod | site to buy smtp | buy spam tools | spammer shop | best site to buy spamming tools | Hacking RDP | Hacking shop | Buy Spamming Tools | buy cpanel for spamming | buy rdp for spamming | spammer store | spammer ro | free spam tools | remote desktop | underground marketplace | email accounts | Spammer Tools | dark web | hacked rdp shop | Inbox Mailer | hacked rdp | Buy Tools Spam | Spamming Tools | Rdp Shop | Site To Buy Spamming Tools | Buy Spam Equipment | Buy Carding Accounts | Fresh Cracked RDP",
+        "url": "https://freshtools.to/",
+        "type": "link"
+      },
+      {
+        "title": "下载所有域名列表",
+        "url": "https://domains-monitor.com/cn/",
+        "type": "link"
+      },
+      {
+        "title": "База зарегистрированных доменов разбитая по зонам",
+        "url": "https://purecrawl.com/download/domains",
+        "type": "link"
+      },
+      {
+        "title": "Lenso.ai - AI Reverse Image Search",
+        "url": "https://lenso.ai/en",
+        "type": "link"
+      },
+      {
+        "title": "Free Face Search Online - FaceOnLive : On-Premises ID Verification & Biometrics Solution Provider",
+        "url": "https://faceonlive.com/face-search-online/",
+        "type": "link"
+      },
+      {
+        "title": "ProFaceFinder: Face Recognition and Reverse Image Search Engine -",
+        "url": "https://profacefinder.com/",
+        "type": "link"
+      },
+      {
+        "title": "FaceCheck - 反向图片搜索 - 人脸识别搜索引擎",
+        "url": "https://facecheck.id/zh",
+        "type": "link"
+      },
+      {
+        "title": "PimEyes：人脸识别搜索引擎和反向图像搜索",
+        "url": "https://pimeyes.com/en",
+        "type": "link"
+      },
+      {
+        "title": "HTTrack Website Copier - Free Software Offline Browser (GNU GPL)",
+        "url": "https://www.httrack.com/",
+        "type": "link"
+      },
+      {
+        "title": "Hurricane Electric IPv6 Certification",
+        "url": "https://ipv6.he.net/certification/register.php",
+        "type": "link"
+      },
+      {
+        "title": "221B 单位——诚信为本，谨慎设计。",
+        "url": "https://www.unit221b.com/",
+        "type": "link"
+      },
+      {
+        "title": "IntelTechniques Search Tool",
+        "url": "https://inteltechniques.com/tools/index.html",
+        "type": "link"
+      },
+      {
+        "title": "PhoneInfoga",
+        "url": "https://sundowndev.github.io/phoneinfoga/",
+        "type": "link"
+      },
+      {
+        "title": "BuiltWith Technology Lookup",
+        "url": "https://builtwith.com/",
+        "type": "link"
+      },
+      {
+        "title": "Synapsint",
+        "url": "https://synapsint.com/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "国外安全实验室",
+    "type": "folder",
+    "items": [
+      {
+        "title": "Unit 42 - Latest Cyber Security Research | Palo Alto Networks",
+        "url": "https://unit42.paloaltonetworks.com/",
+        "type": "link"
+      },
+      {
+        "title": "Research, News, and Perspectives",
+        "url": "https://www.trendmicro.com/en_us/research.html",
+        "type": "link"
+      },
+      {
+        "title": "微软安全Microsoft Security Blog | Digital Security Tips and Solutions",
+        "url": "https://www.microsoft.com/en-us/security/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Vx Underground",
+        "url": "https://vx-underground.org/#",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog | CrowdStrike",
+        "url": "https://www.crowdstrike.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "CPR - Check Point Research",
+        "url": "https://research.checkpoint.com/",
+        "type": "link"
+      },
+      {
+        "title": "Cisco Talos Blog",
+        "url": "https://blog.talosintelligence.com/",
+        "type": "link"
+      },
+      {
+        "title": "Rapid7 Cybersecurity Blog & Latest Vulnerability News",
+        "url": "https://www.rapid7.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Krebs on Security – In-depth security news and investigation",
+        "url": "https://krebsonsecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "Symantec Enterprise Blogs",
+        "url": "https://symantec-enterprise-blogs.security.com/blogs/",
+        "type": "link"
+      },
+      {
+        "title": "SANS.edu Internet Storm Center - SANS Internet Storm Center",
+        "url": "https://isc.sans.edu/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Threat Intelligence & Memory Forensics | Volexity",
+        "url": "https://www.volexity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Posts | Trimarc Content Hub",
+        "url": "https://www.hub.trimarcsecurity.com/posts",
+        "type": "link"
+      },
+      {
+        "title": "Mitiga Blog: Research, Updates, Trends and Analysis",
+        "url": "https://www.mitiga.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "Cloud native applications security",
+        "url": "https://blog.aquasec.com/",
+        "type": "link"
+      },
+      {
+        "title": "Hacking Dream",
+        "url": "https://www.hackingdream.net/",
+        "type": "link"
+      },
+      {
+        "title": "SkullSecurity | SkullSecurity Blog",
+        "url": "https://www.skullsecurity.org/",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Intelligence, News & Insights | Proofpoint US",
+        "url": "https://www.proofpoint.com/us/blog",
+        "type": "link"
+      },
+      {
+        "title": "TrustedSec | Research",
+        "url": "https://trustedsec.com/research",
+        "type": "link"
+      },
+      {
+        "title": "Blogs | Zscaler",
+        "url": "https://www.zscaler.com/blogs",
+        "type": "link"
+      },
+      {
+        "title": "G DATA SECURITY BLOG",
+        "url": "https://www.gdatasoftware.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Group-IB",
+        "url": "https://www.group-ib.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "DataBreaches.net: The Office of Inadequate Security",
+        "url": "https://www.databreaches.net/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Chainalysis",
+        "url": "https://www.chainalysis.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Pentesting & Attack Surface Blog | NetSPI",
+        "url": "https://www.netspi.com/blogs/",
+        "type": "link"
+      },
+      {
+        "title": "Bitsight Blog",
+        "url": "https://www.bitsight.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Black Hills Information Security",
+        "url": "https://www.blackhillsinfosec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Articles — ThreatFabric",
+        "url": "https://www.threatfabric.com/blogs",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog | SentinelOne",
+        "url": "https://www.sentinelone.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Netskope Threat Labs: Combating Security Threats",
+        "url": "https://www.netskope.com/netskope-threat-labs#blogs",
+        "type": "link"
+      },
+      {
+        "title": "Malwarebytes Labs - The Security Blog From Malwarebytes | Malwarebytes Labs",
+        "url": "https://www.malwarebytes.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "zerofox.com",
+        "url": "https://www.zerofox.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Cyber Security Blog | Mandiant Cyber Threat Research",
+        "url": "https://www.mandiant.com/resources/blog",
+        "type": "link"
+      },
+      {
+        "title": "Bitdefender 网络安全博客：新闻、观点和见解 --- Bitdefender Cybersecurity Blogs: News, Views and Insights",
+        "url": "https://www.bitdefender.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Exposure Management Blog",
+        "url": "https://www.tenable.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "维兹博客 |有关云安全的最新故事 --- Wiz Blog | Latest stories about Cloud Security",
+        "url": "https://www.wiz.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity News and Insights to Stay Safe Online | McAfee Blog",
+        "url": "https://www.mcafee.com/blogs/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Securonix",
+        "url": "https://www.securonix.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "恶意软件分析报告 - NCSC.GOV.UK --- Malware analysis reports - NCSC.GOV.UK",
+        "url": "https://www.ncsc.gov.uk/section/keep-up-to-date/malware-analysis-reports",
+        "type": "link"
+      },
+      {
+        "title": "The Guiding Point | GuidePoint Security",
+        "url": "https://www.guidepointsecurity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "ReliaQuest Threat Research",
+        "url": "https://www.reliaquest.com/threat-research-team/",
+        "type": "link"
+      },
+      {
+        "title": "eSecurity Planet: Latest Cybersecurity News for IT Professionals",
+        "url": "https://www.esecurityplanet.com/",
+        "type": "link"
+      },
+      {
+        "title": "ESET Research – security research and expert analysis from ESET Research Labs",
+        "url": "https://www.welivesecurity.com/en/eset-research/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | ReversingLabs",
+        "url": "https://www.reversinglabs.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Zero Day Initiative — Blog",
+        "url": "https://www.zerodayinitiative.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "CySecurity News - Latest Information Security and Hacking Incidents",
+        "url": "https://www.cysecurity.news/",
+        "type": "link"
+      },
+      {
+        "title": "龙新闻博客|威尔士队 --- Dragon News Blog | Team Cymru",
+        "url": "https://www.team-cymru.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Award-winning news, views, and insight from the ESET security community",
+        "url": "https://www.welivesecurity.com/en/",
+        "type": "link"
+      },
+      {
+        "title": "Securelist | Kaspersky’s threat research and reports",
+        "url": "https://securelist.com/",
+        "type": "link"
+      },
+      {
+        "title": "Blog, case studies and resources | Netcraft",
+        "url": "https://www.netcraft.com/resources/?type=blog",
+        "type": "link"
+      },
+      {
+        "title": "威胁趋势与研究博客文章 |门洛安全 --- Threat Trends & Research blog posts | Menlo Security",
+        "url": "https://www.menlosecurity.com/blog-categories/threat-trends-research",
+        "type": "link"
+      },
+      {
+        "title": "Cyber Security Blog | SANS Institute",
+        "url": "https://www.sans.org/blog/",
+        "type": "link"
+      },
+      {
+        "title": "刊物 --- Publications",
+        "url": "https://www.synacktiv.com/en/publications",
+        "type": "link"
+      },
+      {
+        "title": "Sansec 威胁研究与新闻 --- Sansec Threat Research & News",
+        "url": "https://sansec.io/research",
+        "type": "link"
+      },
+      {
+        "title": "eSentire | Blog",
+        "url": "https://www.esentire.com/resources/blog",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Insights | Blog | Foregenix",
+        "url": "https://www.foregenix.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Marco Ramilli Web Corner",
+        "url": "https://marcoramilli.com/",
+        "type": "link"
+      },
+      {
+        "title": "The DFIR Report - Real Intrusions by Real Attackers, The Truth Behind the Intrusion",
+        "url": "https://thedfirreport.com/",
+        "type": "link"
+      },
+      {
+        "title": "Sekoia.io 博客 - 有关威胁情报的新闻和分析 --- Sekoia.io Blog - News and analyses about threat intelligence",
+        "url": "https://blog.sekoia.io/#pll_switcher",
+        "type": "link"
+      },
+      {
+        "title": "技术研究 – MWR Cyber​​Sec",
+        "url": "https://www.mwrcybersec.com/technical-research",
+        "type": "link"
+      },
+      {
+        "title": "FortiGuard 实验室威胁研究 --- FortiGuard Labs Threat Research",
+        "url": "https://www.fortinet.com/blog/threat-research",
+        "type": "link"
+      },
+      {
+        "title": "0x00sec - The Home of the Hacker",
+        "url": "https://0x00sec.org/",
+        "type": "link"
+      },
+      {
+        "title": "谷歌错误猎人 - 谷歌错误猎人",
+        "url": "https://bughunters.google.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Dark Web Intelligence & Cybersecurity Blog - Searchlight Cyber",
+        "url": "https://www.slcyber.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "感邮 | 博客",
+        "url": "https://sensepost.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "克罗尔 |风险和财务咨询解决方案 --- Kroll | Risk and Financial Advisory Solutions",
+        "url": "https://www.kroll.com/en",
+        "type": "link"
+      },
+      {
+        "title": "研究| 恶意生活网| 网络理性",
+        "url": "https://www.cybereason.com/blog/category/research",
+        "type": "link"
+      },
+      {
+        "title": "旅程笔记 - 通往更安全道路的指南",
+        "url": "https://blog.barracuda.com/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Darktrace",
+        "url": "https://darktrace.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Insikt Group Research | Recorded Future",
+        "url": "https://www.recordedfuture.com/research",
+        "type": "link"
+      },
+      {
+        "title": "SentinelLabs - We are hunters, reversers, exploit developers, and tinkerers shedding light on the world of malware, exploits, APTs, and cybercrime across all platforms.",
+        "url": "https://www.sentinelone.com/labs/",
+        "type": "link"
+      },
+      {
+        "title": "Ransomware Protection | Perception Point",
+        "url": "https://perception-point.io/blog/category/attack-trends/",
+        "type": "link"
+      },
+      {
+        "title": "ASEC 博客 - AhnLab",
+        "url": "https://asec.ahnlab.com/ko/",
+        "type": "link"
+      },
+      {
+        "title": "ANY.RUN&#39;s Cybersecurity Blog",
+        "url": "https://any.run/cybersecurity-blog/",
+        "type": "link"
+      },
+      {
+        "title": "Cybereason Blog | Cybersecurity News and Analysis",
+        "url": "https://www.cybereason.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "专家见解、论文和观点 | Checkmarx 博客",
+        "url": "https://checkmarx.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Rapid7 网络安全博客 - 所有帖子",
+        "url": "https://www.rapid7.com/blog/posts/",
+        "type": "link"
+      },
+      {
+        "title": "Tidal Cyber - Community Edition",
+        "url": "https://app.tidalcyber.com/",
+        "type": "link"
+      },
+      {
+        "title": "SOC Prime 博客",
+        "url": "https://socprime.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog – Home | News & Insights on Next-Gen Technologies - Lumen",
+        "url": "https://blog.lumen.com/",
+        "type": "link"
+      },
+      {
+        "title": "HUMAN Blog",
+        "url": "https://www.humansecurity.com/learn/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Nextron Systems",
+        "url": "https://www.nextron-systems.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Intelligence Resources | Recorded Future",
+        "url": "https://www.recordedfuture.com/resources",
+        "type": "link"
+      },
+      {
+        "title": "Threat Intelligence Blog | Flashpoint",
+        "url": "https://flashpoint.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "攻击博客 – Horizo​​n3.ai",
+        "url": "https://www.horizon3.ai/category/attack-blogs/",
+        "type": "link"
+      },
+      {
+        "title": "Deep Learning Blog & Use Cases | Deep Instinct",
+        "url": "https://www.deepinstinct.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Schneier on Security: Essays",
+        "url": "https://www.schneier.com/essays/",
+        "type": "link"
+      },
+      {
+        "title": "安全情报 - 网络安全分析和洞察",
+        "url": "https://securityintelligence.com/",
+        "type": "link"
+      },
+      {
+        "title": "HP Wolf Security Blog | Cyber Threat Insights and Reports",
+        "url": "https://threatresearch.ext.hp.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "研究 - 门",
+        "url": "https://blog.phylum.io/tag/research/",
+        "type": "link"
+      },
+      {
+        "title": "数据包风暴",
+        "url": "https://packetstormsecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "ASEC BLOG - AhnLab",
+        "url": "https://asec.ahnlab.com/en/",
+        "type": "link"
+      },
+      {
+        "title": "McAfee Labs | McAfee Blogs",
+        "url": "https://www.mcafee.com/blogs/other-blogs/mcafee-labs/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Research – Sophos News",
+        "url": "https://news.sophos.com/en-us/category/threat-research/",
+        "type": "link"
+      },
+      {
+        "title": "Medium",
+        "url": "https://medium.com/",
+        "type": "link"
+      },
+      {
+        "title": "Malware Analysis, News and Indicators",
+        "url": "https://malware.news/",
+        "type": "link"
+      },
+      {
+        "title": "ransomwatch/docs/INDEX.md at main · joshhighet/ransomwatch",
+        "url": "https://github.com/joshhighet/ransomwatch/blob/main/docs/INDEX.md",
+        "type": "link"
+      },
+      {
+        "title": "酸汁|非营利网络善良",
+        "url": "https://www.secjuice.com/",
+        "type": "link"
+      },
+      {
+        "title": "Avast Threat Labs - Uncovering Tactics, Techniques and Procedures of malicious actors",
+        "url": "https://decoded.avast.io/",
+        "type": "link"
+      },
+      {
+        "title": "Sophos News – The Sophos Blog",
+        "url": "https://news.sophos.com/en-us/",
+        "type": "link"
+      },
+      {
+        "title": "资源 - 网络情报和外部威胁监控 | CYFIRMA",
+        "url": "https://www.cyfirma.com/resources/",
+        "type": "link"
+      },
+      {
+        "title": "威胁分析报告-genians",
+        "url": "https://www.genians.co.kr/blog/threat_intelligence",
+        "type": "link"
+      },
+      {
+        "title": "CERT-UA",
+        "url": "https://cert.gov.ua/articles",
+        "type": "link"
+      },
+      {
+        "title": "WithSecure™ Labs | WithSecure™ Labs",
+        "url": "https://labs.withsecure.com/home",
+        "type": "link"
+      },
+      {
+        "title": "技术文章",
+        "url": "https://bi.zone/expertise/blog/",
+        "type": "link"
+      },
+      {
+        "title": "0dayfans.com",
+        "url": "https://0dayfans.com/",
+        "type": "link"
+      },
+      {
+        "title": "Intigriti - Bug Bounty & Agile Pentesting Platform",
+        "url": "https://blog.intigriti.com/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Penetration Testing - Red Teaming - Purple Teaming - Security Training | Tier Zero Security, New Zealand",
+        "url": "https://tierzerosecurity.co.nz/blog.html",
+        "type": "link"
+      },
+      {
+        "title": "SonicWall Blog | Cybersecurity News and Announcements",
+        "url": "https://blog.sonicwall.com/en-us/",
+        "type": "link"
+      },
+      {
+        "title": "Infoblox Company Blogs, Support Central, and Community Info",
+        "url": "https://blogs.infoblox.com/",
+        "type": "link"
+      },
+      {
+        "title": "Information Security • InfoTech & InfoSec News",
+        "url": "https://meterpreter.org/category/information-security/",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog & News - Outpost24",
+        "url": "https://outpost24.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "News, Techniques & Guides | Oversecured Blog",
+        "url": "https://blog.oversecured.com/",
+        "type": "link"
+      },
+      {
+        "title": "网络威胁情报报告|风险研究|带外",
+        "url": "https://www.cyfirma.com/cyber-research/",
+        "type": "link"
+      },
+      {
+        "title": "Blog — Leviathan Security Group - Penetration Testing, Security Assessment, Risk Advisory",
+        "url": "https://www.leviathansecurity.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "CYBER 5W",
+        "url": "https://blog.cyber5w.com/",
+        "type": "link"
+      },
+      {
+        "title": "ProjectDiscovery.io | Blog",
+        "url": "https://blog.projectdiscovery.io/",
+        "type": "link"
+      },
+      {
+        "title": "谷歌云博客 |新闻、专题和公告",
+        "url": "https://cloud.google.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "FortiGuard Labs",
+        "url": "https://fortiguard.fortinet.com/",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog | Sprocket Security",
+        "url": "https://www.sprocketsecurity.com/resources",
+        "type": "link"
+      },
+      {
+        "title": "Research & Threat Intelligence Archives - Sekoia.io Blog",
+        "url": "https://blog.sekoia.io/category/research-threat-intelligence/",
+        "type": "link"
+      },
+      {
+        "title": "Published | JUMPSEC LABS",
+        "url": "https://labs.jumpsec.com/",
+        "type": "link"
+      },
+      {
+        "title": "Expert Cybersecurity Insights And Analysis | Cyble Blog",
+        "url": "https://cyble.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Блог | F.A.С.С.T.",
+        "url": "https://www.facct.ru/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Phylum | Research Blog",
+        "url": "https://blog.phylum.io/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Sysdig",
+        "url": "https://sysdig.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Secureworks Blog | Secureworks",
+        "url": "https://www.secureworks.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "NETSCOUT Blog | NETSCOUT",
+        "url": "https://www.netscout.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Aqua Cloud Native Blog - Aqua",
+        "url": "https://www.aquasec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "watchTowr Labs - Blog",
+        "url": "https://labs.watchtowr.com/",
+        "type": "link"
+      },
+      {
+        "title": "Kaspersky official blog",
+        "url": "https://www.kaspersky.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Researcher Blog - ITOCHU Cyber & Intelligence Inc.",
+        "url": "https://blog-en.itochuci.co.jp/",
+        "type": "link"
+      },
+      {
+        "title": "Elastic Security Labs",
+        "url": "https://www.elastic.co/security-labs",
+        "type": "link"
+      },
+      {
+        "title": "白皮书",
+        "url": "https://www.cisecurity.org/insights/white-papers",
+        "type": "link"
+      },
+      {
+        "title": "电子邮件安全博客 |异常",
+        "url": "https://abnormalsecurity.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Malware Analysis and Threat Intelligence Research",
+        "url": "https://www.embeeresearch.io/",
+        "type": "link"
+      },
+      {
+        "title": "BlackBerry Blog",
+        "url": "https://blogs.blackberry.com/en/home",
+        "type": "link"
+      },
+      {
+        "title": "Un informático en el lado del mal",
+        "url": "https://www.elladodelmal.com/",
+        "type": "link"
+      },
+      {
+        "title": "-- Niebezpiecznik.pl --",
+        "url": "https://niebezpiecznik.pl/",
+        "type": "link"
+      },
+      {
+        "title": "Positive Technologies 分析",
+        "url": "https://www.ptsecurity.com/ww-en/analytics/",
+        "type": "link"
+      },
+      {
+        "title": "THALIUM",
+        "url": "https://blog.thalium.re/",
+        "type": "link"
+      },
+      {
+        "title": "所有文章 - PortSwigger 研究",
+        "url": "https://portswigger.net/research/articles",
+        "type": "link"
+      },
+      {
+        "title": "DEVCORE",
+        "url": "https://devco.re/en/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Security Blog | Ambionics Security",
+        "url": "https://www.ambionics.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Huntress Blog | Huntress",
+        "url": "https://www.huntress.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Mantodea Security",
+        "url": "https://mantodeasecurity.de/en/blog/",
+        "type": "link"
+      },
+      {
+        "title": "The Red Canary Blog: Information Security Insights",
+        "url": "https://redcanary.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "DLL Side Loading through IObit against Colombia",
+        "url": "https://lab52.io/blog/dll-side-loading-through-iobit-against-colombia/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - 0daylabs | Security | Training | Testing",
+        "url": "https://blog.0daylabs.com/",
+        "type": "link"
+      },
+      {
+        "title": "ReliaQuest Blog - Threat Hunting, Security Operations, and More",
+        "url": "https://www.reliaquest.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Resecurity | Blog",
+        "url": "https://www.resecurity.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "最新讯息News | DEVCORE 戴夫寇尔",
+        "url": "https://devco.re/blog/",
+        "type": "link"
+      },
+      {
+        "title": "网站安全新闻 | Sucuri 博客",
+        "url": "https://blog.sucuri.net/",
+        "type": "link"
+      },
+      {
+        "title": "Huntr Blog",
+        "url": "https://blog.huntr.com/",
+        "type": "link"
+      },
+      {
+        "title": "Morphisec Breach Prevention Blog",
+        "url": "https://blog.morphisec.com/",
+        "type": "link"
+      },
+      {
+        "title": "Penetration Testing and CyberSecurity Solution - SecureLayer7 -",
+        "url": "https://blog.securelayer7.net/",
+        "type": "link"
+      },
+      {
+        "title": "Blogs - Redfox Security",
+        "url": "https://redfoxsec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Zero Day Initiative — Blog",
+        "url": "https://www.zerodayinitiative.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blogs",
+        "url": "https://summoning.team/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Publications | Outflank",
+        "url": "https://www.outflank.nl/blog/",
+        "type": "link"
+      },
+      {
+        "title": "托管网络安全服务 | PurpleSec",
+        "url": "https://purplesec.us/",
+        "type": "link"
+      },
+      {
+        "title": "NCC Group Research Blog | Making the world safer and more secure",
+        "url": "https://research.nccgroup.com/category/public-reports/",
+        "type": "link"
+      },
+      {
+        "title": "Blog",
+        "url": "https://www.certego.net/blog/",
+        "type": "link"
+      },
+      {
+        "title": "The Ultimate App Security Blog | OX Security",
+        "url": "https://www.ox.security/blog/",
+        "type": "link"
+      },
+      {
+        "title": "@BushidoToken 威胁英特尔 --- @BushidoToken Threat Intel",
+        "url": "https://blog.bushidotoken.net/",
+        "type": "link"
+      },
+      {
+        "title": "SpiderLabs 博客",
+        "url": "https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog",
+        "type": "link"
+      },
+      {
+        "title": "Techblog | G DATA SECURITY BLOG",
+        "url": "https://www.gdatasoftware.com/blog/techblog",
+        "type": "link"
+      },
+      {
+        "title": "Article Listing | Datadog Security Labs",
+        "url": "https://securitylabs.datadoghq.com/articles/",
+        "type": "link"
+      },
+      {
+        "title": "Latest Cybersecurity Insights & Trends | Sygnia Blog",
+        "url": "https://www.sygnia.co/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog – BC Security",
+        "url": "https://bc-security.org/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Team82 - XIoT Cybersecurity Research | Claroty",
+        "url": "https://claroty.com/team82/research?utm_campaign=%5BSocial%5D%20Team82%20-%20OPC%20UA%20Deep%20Dive%20Series&utm_content=297581316&utm_medium=social&utm_source=twitter&hss_channel=tw-18252252",
+        "type": "link"
+      },
+      {
+        "title": "PT ESC Threat Intelligence",
+        "url": "https://www.ptsecurity.com/ww-en/analytics/pt-esc-threat-intelligence/",
+        "type": "link"
+      },
+      {
+        "title": "Blog – Latest Posts - Juggernaut Pentesting Blog",
+        "url": "https://juggernaut-sec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Monitoring Android file system with fsmon",
+        "url": "https://www.mobile-hacker.com/2024/06/24/monitoring-android-file-system-with-fsmon/#",
+        "type": "link"
+      },
+      {
+        "title": "Blog | WPScan",
+        "url": "https://wpscan.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog Archives - LRQA Nettitude Labs",
+        "url": "https://labs.nettitude.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "News Archives - hn security",
+        "url": "https://security.humanativaspa.it/category/news/",
+        "type": "link"
+      },
+      {
+        "title": "Research Blog",
+        "url": "https://www.elttam.com/blog/#content",
+        "type": "link"
+      },
+      {
+        "title": "Cleafy Labs | Threat Intelligence feeds and fraud detection",
+        "url": "https://www.cleafy.com/labs",
+        "type": "link"
+      },
+      {
+        "title": "Wallarm - Cloud-Native Application and API Security",
+        "url": "https://lab.wallarm.com/",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Alerts & Advisories | CISA",
+        "url": "https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A93",
+        "type": "link"
+      },
+      {
+        "title": "Posts | Blog | Sandfly Security",
+        "url": "https://sandflysecurity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "From the Frog&#39;s mouth - JFrog Blog",
+        "url": "https://jfrog.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Cloud Incident Response Blog | Cado Security",
+        "url": "https://www.cadosecurity.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Lab Blog - K7 Labs",
+        "url": "https://labs.k7computing.com/",
+        "type": "link"
+      },
+      {
+        "title": "热门 Linux 新闻、公告、操作指南和功能发布",
+        "url": "https://linuxsecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Hunting Blog | Hunt.io",
+        "url": "https://hunt.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "Trustwave Blog",
+        "url": "https://www.trustwave.com/en-us/resources/blogs/trustwave-blog",
+        "type": "link"
+      },
+      {
+        "title": "Intezer - Blog",
+        "url": "https://intezer.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "SSD Secure Disclosure Security Advisories - SSD Secure Disclosure",
+        "url": "https://ssd-disclosure.com/advisories/",
+        "type": "link"
+      },
+      {
+        "title": "Uptycs Blog | Cloud Security Insights for Linux and Containers",
+        "url": "https://www.uptycs.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Tanto Blog",
+        "url": "https://tantosec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Resources - Cyberthint",
+        "url": "https://cyberthint.io/resources/",
+        "type": "link"
+      },
+      {
+        "title": "SlashNext Blog | Multi-Channel Phishing Protection & Cyber Security",
+        "url": "https://slashnext.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Security Blog - Infoblox Experts Community",
+        "url": "https://blogs.infoblox.com/category/security/",
+        "type": "link"
+      },
+      {
+        "title": "TrustedSec | Blog",
+        "url": "https://trustedsec.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "List of “Incident” - JPCERT/CC Eyes | JPCERT Coordination Center official Blog",
+        "url": "https://blogs.jpcert.or.jp/en/incident/",
+        "type": "link"
+      },
+      {
+        "title": "Research",
+        "url": "https://blog.barracuda.com/category/research",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Research Blogs | DarkRelay",
+        "url": "https://www.darkrelay.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Threat Hunting with Validin - Blog | Validin",
+        "url": "https://www.validin.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "目标-查看：博客",
+        "url": "https://objective-see.org/blog.html",
+        "type": "link"
+      },
+      {
+        "title": "API Security Blog - API Attack Prevention Strategy Guides",
+        "url": "https://salt.security/blog",
+        "type": "link"
+      },
+      {
+        "title": "安全|中电网络",
+        "url": "https://www.zdnet.com/topic/security/",
+        "type": "link"
+      },
+      {
+        "title": "Team82 - XIoT 网络安全研究 | Claroty",
+        "url": "https://claroty.com/team82/research",
+        "type": "link"
+      },
+      {
+        "title": "Threat Research Blog",
+        "url": "https://www.cyberark.com/resources/threat-research-blog",
+        "type": "link"
+      },
+      {
+        "title": "Home | Datadog Security Labs",
+        "url": "https://securitylabs.datadoghq.com/",
+        "type": "link"
+      },
+      {
+        "title": "博客 - Crowdfense",
+        "url": "https://www.crowdfense.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Runtime application security blog | Oligo Security",
+        "url": "https://www.oligo.security/resources/blog?category=All",
+        "type": "link"
+      },
+      {
+        "title": "Threat Research",
+        "url": "https://www.team-cymru.com/blog/categories/threat-research",
+        "type": "link"
+      },
+      {
+        "title": "runZero Research",
+        "url": "https://www.runzero.com/blog/runzero-research/",
+        "type": "link"
+      },
+      {
+        "title": "Blog",
+        "url": "https://ironscales.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "博客档案 | 分析师 1%",
+        "url": "https://analyst1.com/category/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Latest Blog Posts - Cybenari",
+        "url": "https://cybenari.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "GCA 博客 - 全球网络联盟",
+        "url": "https://globalcyberalliance.org/blog/",
+        "type": "link"
+      },
+      {
+        "title": "RESOURCES – IOActive",
+        "url": "https://ioactive.com/resources/blogs/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | MOHAMMED ADEL",
+        "url": "https://www.0xpolar.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "SySS Tech Blog",
+        "url": "https://blog.syss.com/",
+        "type": "link"
+      },
+      {
+        "title": "ReasonLabs 研究",
+        "url": "https://reasonlabs.com/research",
+        "type": "link"
+      },
+      {
+        "title": "SCRT Team Blog – Orange Cyberdefense Switzerland&#39;s technical blog",
+        "url": "https://blog.scrt.ch/",
+        "type": "link"
+      },
+      {
+        "title": "Dragos Blog",
+        "url": "https://www.dragos.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Posts · Tetrel Security",
+        "url": "https://tetrelsec.com/posts/",
+        "type": "link"
+      },
+      {
+        "title": "Download Showcase.apk Vulnerability Disclosure",
+        "url": "https://iverify.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog: Stay Ahead of Cyber Threats | Intel471",
+        "url": "https://intel471.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "ThreatMon 博客",
+        "url": "https://threatmon.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "网络安全 - Palo Alto Networks 博客",
+        "url": "https://www.paloaltonetworks.com/blog/network-security/",
+        "type": "link"
+      },
+      {
+        "title": "Blog Posts | Akamai",
+        "url": "https://www.akamai.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog | Perimeter 81",
+        "url": "https://www.perimeter81.com/blog?accountid=2597329217&utm_source=google&utm_medium=cpc&utm_campaign=17072827859&utm_adgroup=135575893109&utm_target=kwd-415398361840&utm_matchtype=e&utm_network=g&utm_device=c&utm_creative=676810550877&utm_term=perimeter%2081&utm_adposition=&utm_content=&utm_placement=&utm_campaigntype=performance&gclid=Cj0KCQjw9vqyBhCKARIsAIIcLMFwgQdyVGMIMfwaCq490U-y0PqPOHTqFdZvFisiwbgL7zWshpAaXYYaAuwmEALw_wcB",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog | Perimeter 81",
+        "url": "https://www.perimeter81.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog | OffSec",
+        "url": "https://www.offsec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | CrowdSec",
+        "url": "https://www.crowdsec.net/blog",
+        "type": "link"
+      },
+      {
+        "title": "CloudSec Blog by ARMO",
+        "url": "https://www.armosec.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Breach and Attack Simulation Articles | SafeBreach Blog",
+        "url": "https://www.safebreach.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "G DATA SECURITY BLOG",
+        "url": "https://www.gdatasoftware.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "News and Notes from the Makers of Nexus | Sonatype Blog",
+        "url": "https://www.sonatype.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Sector 7",
+        "url": "https://sector7.computest.nl/",
+        "type": "link"
+      },
+      {
+        "title": "Kandji Blog | Apple Device Management - Mac Management",
+        "url": "https://www.kandji.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Cyberint",
+        "url": "https://cyberint.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Panda Security Mediacenter - All the info about your cybersecurity",
+        "url": "https://www.pandasecurity.com/en/mediacenter/",
+        "type": "link"
+      },
+      {
+        "title": "리소스 | S2W",
+        "url": "https://www.s2w.inc/ko/resource",
+        "type": "link"
+      },
+      {
+        "title": "应用程序检测和响应 (ADR) 博客 | Miggo",
+        "url": "https://www.miggo.io/resources",
+        "type": "link"
+      },
+      {
+        "title": "CloudSEK Blog - Cybersecurity Insights",
+        "url": "https://www.cloudsek.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "NTT 安全技术博客 | 安全控股",
+        "url": "https://jp.security.ntt/tech_blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Perception Point",
+        "url": "https://perception-point.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Application Security Blog - Conviso AppSec",
+        "url": "https://blog.convisoappsec.com/en/",
+        "type": "link"
+      },
+      {
+        "title": "The Versa Networks Blog - The Versa Networks Blog",
+        "url": "https://versa-networks.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Gen Blogs | Home",
+        "url": "https://www.gendigital.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Latest Cybersecurity Insights, Statistics, Trends, and Articles",
+        "url": "https://www.securonix.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog | Global Secure Layer",
+        "url": "https://globalsecurelayer.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Insights - Truesec",
+        "url": "https://www.truesec.com/hub/blog",
+        "type": "link"
+      },
+      {
+        "title": "UpGuard Blog | UpGuard",
+        "url": "https://www.upguard.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Out of Band Archive - CYFIRMA",
+        "url": "https://www.cyfirma.com/research/",
+        "type": "link"
+      },
+      {
+        "title": "Blog | PixiePoint Security",
+        "url": "https://www.pixiepointsecurity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Our Blog - Critical Start",
+        "url": "https://www.criticalstart.com/criticalstart-blog/?blog-category=technical-blogs",
+        "type": "link"
+      },
+      {
+        "title": "NewsGuard Special Reports - NewsGuard",
+        "url": "https://www.newsguardtech.com/reports/",
+        "type": "link"
+      },
+      {
+        "title": "Fortgale | Cybersecurity and Cyber Threat Intelligence Blog",
+        "url": "https://fortgale.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Zengo",
+        "url": "https://zengo.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Socket",
+        "url": "https://socket.dev/blog",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog - ThreatDown by Malwarebytes",
+        "url": "https://www.threatdown.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Arctic Wolf",
+        "url": "https://arcticwolf.com/resources/blog/",
+        "type": "link"
+      },
+      {
+        "title": "AWS Security Blog",
+        "url": "https://aws.amazon.com/cn/blogs/security/",
+        "type": "link"
+      },
+      {
+        "title": "Include Security Research Blog - Team Research blog",
+        "url": "https://blog.includesecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "Resources | S2W",
+        "url": "https://s2w.inc/en/resource",
+        "type": "link"
+      },
+      {
+        "title": "The Mend.io AppSec Blog",
+        "url": "https://www.mend.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "网络安全博客 | 二进制防御",
+        "url": "https://www.binarydefense.com/resources/blog/",
+        "type": "link"
+      },
+      {
+        "title": "GreyNoise Intelligence | 网络安全博客",
+        "url": "https://www.greynoise.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "资源：重新思考应用程序安全性 | 钴",
+        "url": "https://www.cobalt.io/resources",
+        "type": "link"
+      },
+      {
+        "title": "Cerbero 博客",
+        "url": "https://blog.cerbero.io/",
+        "type": "link"
+      },
+      {
+        "title": "Attack Research – Horizon3.ai",
+        "url": "https://www.horizon3.ai/attack-research/",
+        "type": "link"
+      },
+      {
+        "title": "身份威胁情报博客 | Constella Intelligence",
+        "url": "https://constella.ai/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Intelligence - Research page | Cloudflare",
+        "url": "https://www.cloudflare.com/threat-intelligence/research/",
+        "type": "link"
+      },
+      {
+        "title": "资源中心 - Fox IT",
+        "url": "https://www.fox-it.com/nl-en/resource-hub/",
+        "type": "link"
+      },
+      {
+        "title": "博客 - FalconForce",
+        "url": "https://falconforce.nl/blogs/",
+        "type": "link"
+      },
+      {
+        "title": "研究笔记",
+        "url": "https://www.assetnote.io/resources/research",
+        "type": "link"
+      },
+      {
+        "title": "威胁情报中心 | Cloudflare",
+        "url": "https://www.cloudflare.com/en-gb/threat-intelligence/",
+        "type": "link"
+      },
+      {
+        "title": "威胁情报 | Google Cloud 博客",
+        "url": "https://cloud.google.com/blog/topics/threat-intelligence/",
+        "type": "link"
+      },
+      {
+        "title": "JPCERT/CC Eyes | JPCERT 协调中心官方博客",
+        "url": "https://blogs.jpcert.or.jp/ja/",
+        "type": "link"
+      },
+      {
+        "title": "Security Research & Insights | BINARLY",
+        "url": "https://www.binarly.io/articles",
+        "type": "link"
+      },
+      {
+        "title": "Varonis Blog | All Things Data Security",
+        "url": "https://www.varonis.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog - UK Archives - Arctic Wolf",
+        "url": "https://arcticwolf.com/resources/category/blog-uk/",
+        "type": "link"
+      },
+      {
+        "title": "Clean Code Blog | SonarSource | Sonar",
+        "url": "https://www.sonarsource.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Home - Amnesty International Security Lab",
+        "url": "https://securitylab.amnesty.org/",
+        "type": "link"
+      },
+      {
+        "title": "The OT Cybersecurity Blog",
+        "url": "https://www.nozominetworks.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Jscrambler Blog: JavaScript protection, app security & more",
+        "url": "https://jscrambler.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Avanan | Blog",
+        "url": "https://www.avanan.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blogs Archive - Zimperium",
+        "url": "https://www.zimperium.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "博客 - Netlas",
+        "url": "https://netlas.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - TCM Security",
+        "url": "https://tcm-sec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "新闻 - r-tec 网络安全",
+        "url": "https://www.r-tec.net/news-events.html",
+        "type": "link"
+      },
+      {
+        "title": "All articles - Almond Offensive Security Blog",
+        "url": "https://offsec.almond.consulting/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Labs - Netskope",
+        "url": "https://www.netskope.com/blog/category/netskope-threat-labs",
+        "type": "link"
+      },
+      {
+        "title": "Real-time communications security – Enable Security",
+        "url": "https://www.enablesecurity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "SEC Consult Blog - Information Security and Company News - SEC Consult",
+        "url": "https://sec-consult.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "博客 - IT 安全专家的所有见解",
+        "url": "https://www.intrinsec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "The GenAI Bug Bounty Program | 0din.ai",
+        "url": "https://0din.ai/blog",
+        "type": "link"
+      },
+      {
+        "title": "Canadian Centre for Cyber Security",
+        "url": "https://www.cyber.gc.ca/en",
+        "type": "link"
+      },
+      {
+        "title": "0patch Blog",
+        "url": "https://blog.0patch.com/",
+        "type": "link"
+      },
+      {
+        "title": "Specops 软件博客 - Specops 软件",
+        "url": "https://specopssoft.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "网络应急响应小组 (CERT) | 比利时网络安全中心",
+        "url": "https://ccb.belgium.be/en/cert",
+        "type": "link"
+      },
+      {
+        "title": "Browser Protection | Data & Privacy Security | Guardio Personal Blog",
+        "url": "https://guard.io/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Data breach monitoring - the blog",
+        "url": "https://www.breachsense.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "ZeroPath 博客 - Web 应用程序安全见解",
+        "url": "https://zeropath.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Publications",
+        "url": "https://www.synacktiv.com/publications",
+        "type": "link"
+      },
+      {
+        "title": "Spring WebFlux Authorization Bypass: CVE-2024-38821 Explained",
+        "url": "https://www.deep-kondah.com/spring-webflux-static-resource-access-vulnerability-cve-2024-38821-explained/",
+        "type": "link"
+      },
+      {
+        "title": "Knowledge - Midnight Blue",
+        "url": "https://www.midnightblue.nl/knowledge",
+        "type": "link"
+      },
+      {
+        "title": "Blogs",
+        "url": "https://www.trugard.ai/blogs",
+        "type": "link"
+      },
+      {
+        "title": "安全 | TechRepublic",
+        "url": "https://www.techrepublic.com/topic/security/",
+        "type": "link"
+      },
+      {
+        "title": "网络安全博客 - Heimdal Security",
+        "url": "https://heimdalsecurity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "资源-PhishCloud",
+        "url": "https://phishcloud.com/resources/",
+        "type": "link"
+      },
+      {
+        "title": "网络安全博客 | 安全跑者",
+        "url": "https://www.securityrunners.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog — ProjectDiscovery",
+        "url": "https://projectdiscovery.io/blog",
+        "type": "link"
+      },
+      {
+        "title": "博客 – ClearSky 网络安全",
+        "url": "https://www.clearskysec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Icinga » Blog",
+        "url": "https://icinga.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Blog - Laburity",
+        "url": "https://laburity.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Escape - The API Security Blog",
+        "url": "https://escape.tech/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Pulse Security",
+        "url": "https://pulsesecurity.co.nz/articles",
+        "type": "link"
+      },
+      {
+        "title": "Lineaje - Blogs",
+        "url": "https://www.lineaje.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Official news and updates on Google&#39;s Threat Analysis Group | Google Blog",
+        "url": "https://blog.google/threat-analysis-group/",
+        "type": "link"
+      },
+      {
+        "title": "SonicWall Blog | Cybersecurity News and Announcements",
+        "url": "https://www.sonicwall.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "Zafran Security | Learn more about Risk Mitigation",
+        "url": "https://www.zafran.io/learn",
+        "type": "link"
+      },
+      {
+        "title": "The Moonlock Blog: Cybersecurity blog for humans",
+        "url": "https://moonlock.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "威胁情报",
+        "url": "https://www.lookout.com/threat-intelligence",
+        "type": "link"
+      },
+      {
+        "title": "Jamf Blog. Apple Device Management (MDM) & Security | Jamf",
+        "url": "https://www.jamf.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Flatt Security Research",
+        "url": "https://flatt.tech/research/",
+        "type": "link"
+      },
+      {
+        "title": "Non-Human Identity Management Blog",
+        "url": "https://www.oasis.security/blog",
+        "type": "link"
+      },
+      {
+        "title": "Kaspersky Digital Footprint Intelligence",
+        "url": "https://dfi.kaspersky.com/",
+        "type": "link"
+      },
+      {
+        "title": "Application Security Blog - AppSec news, trends, tips and insights",
+        "url": "https://www.contrastsecurity.com/security-influencers",
+        "type": "link"
+      },
+      {
+        "title": "知识库",
+        "url": "https://www.ptsecurity.com/ru-ru/research/knowledge-base/",
+        "type": "link"
+      },
+      {
+        "title": "公民实验室-多伦多大学",
+        "url": "https://citizenlab.ca/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Intelligence and Cybersecurity Insights | Blog",
+        "url": "https://threatconnect.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Threat Intelligence Blog | Recorded Future",
+        "url": "https://www.recordedfuture.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "ASERT 安全工程和威胁博客 | NETSCOUT",
+        "url": "https://www.netscout.com/asert/blog",
+        "type": "link"
+      },
+      {
+        "title": "帖子 - Heimdal 安全博客",
+        "url": "https://heimdalsecurity.com/blog/posts/",
+        "type": "link"
+      },
+      {
+        "title": "Imperva Blog | Cyber Security Research, News & Insights",
+        "url": "https://www.imperva.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Forcepoint Security Insights | Forcepoint",
+        "url": "https://www.forcepoint.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "网络钓鱼预防和电子邮件安全博客 | Cofense",
+        "url": "https://cofense.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Cybersecurity Blog | CrowdStrike",
+        "url": "https://www.crowdstrike.com/en-us/blog/",
+        "type": "link"
+      },
+      {
+        "title": "PreOS Security – Firmware Security For Enterprise And Forensics",
+        "url": "https://preossec.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "Don&#39;t Read This Blog",
+        "url": "https://blog.unit221b.com/dont-read-this-blog",
+        "type": "link"
+      },
+      {
+        "title": "Blog | BeyondTrust",
+        "url": "https://www.beyondtrust.com/blog",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "国内安全实验室",
+    "type": "folder",
+    "items": [
+      {
+        "title": "【每日云安全资讯】- 云鼎实验室 2023-11-10",
+        "url": "https://cloudsec.tencent.com/info/list.html",
+        "type": "link"
+      },
+      {
+        "title": "腾讯手机管家官网",
+        "url": "https://m.qq.com/security_lab/",
+        "type": "link"
+      },
+      {
+        "title": "[ 星图实验室 ]",
+        "url": "https://tianwen.qianxin.com/blog",
+        "type": "link"
+      },
+      {
+        "title": "红日安全实验室 | sec-redclub.com",
+        "url": "https://redbu1l.github.io/index.html",
+        "type": "link"
+      },
+      {
+        "title": "腾讯科恩实验室官方博客",
+        "url": "https://keenlab.tencent.com/zh/",
+        "type": "link"
+      },
+      {
+        "title": "奇安信 X 实验室",
+        "url": "https://blog.xlab.qianxin.com/",
+        "type": "link"
+      },
+      {
+        "title": "伏影实验室 – 绿盟科技技术博客",
+        "url": "https://blog.nsfocus.net/author/fuying-lab/",
+        "type": "link"
+      },
+      {
+        "title": "安全团队_360数字安全",
+        "url": "https://360.net/research/team/#menu",
+        "type": "link"
+      },
+      {
+        "title": "360漏洞研究院",
+        "url": "https://vul.360.net/",
+        "type": "link"
+      },
+      {
+        "title": "阿里云恶意文件检测平台 - 首页",
+        "url": "https://ti.aliyun.com/#/overview",
+        "type": "link"
+      },
+      {
+        "title": "安全星图平台",
+        "url": "https://starmap.dbappsecurity.com.cn/blog/",
+        "type": "link"
+      },
+      {
+        "title": "奇安信威胁情报中心",
+        "url": "https://ti.qianxin.com/blog/",
+        "type": "link"
+      },
+      {
+        "title": "GoUpSec - 升华安全佳- GoUpSec.com",
+        "url": "https://www.goupsec.com/",
+        "type": "link"
+      },
+      {
+        "title": "Sekoia.io 博客 - 有关威胁情报的新闻和分析",
+        "url": "https://blog.sekoia.io/",
+        "type": "link"
+      },
+      {
+        "title": "历史博文 | 破壳漏洞挖掘平台",
+        "url": "https://tiangonglab.github.io/blog/archive",
+        "type": "link"
+      },
+      {
+        "title": "Archives | IceSword Lab",
+        "url": "https://www.iceswordlab.com/archives/",
+        "type": "link"
+      },
+      {
+        "title": "风险监测平台",
+        "url": "https://sec.sangfor.com.cn/wiki-safe-events",
+        "type": "link"
+      },
+      {
+        "title": "技术博客-网宿科技",
+        "url": "https://www.wangsu.com/news/blog-list",
+        "type": "link"
+      },
+      {
+        "title": "360CERT - 360网络安全响应中心官网",
+        "url": "https://cert.360.cn/",
+        "type": "link"
+      },
+      {
+        "title": "天融信阿尔法实验室",
+        "url": "https://blog.topsec.com.cn/",
+        "type": "link"
+      },
+      {
+        "title": "具備駭客思維的紅隊演練專家 | DEVCORE 戴夫寇爾",
+        "url": "https://devco.re/",
+        "type": "link"
+      },
+      {
+        "title": "DARKNAVY",
+        "url": "https://www.darknavy.org/zh/",
+        "type": "link"
+      },
+      {
+        "title": "Cyber Security | FarSight Labs Threat Intelligence | Sangfor",
+        "url": "https://www.sangfor.com/farsight-labs-threat-intelligence/cybersecurity",
+        "type": "link"
+      },
+      {
+        "title": "深信服安全中心",
+        "url": "https://sec.sangfor.com.cn/security-vulnerability",
+        "type": "link"
+      },
+      {
+        "title": "机窝安全——全姿势|一站式|业界最全的安全分析防护平台!安全窝!",
+        "url": "https://jiwo.org/",
+        "type": "link"
+      },
+      {
+        "title": "SecToday Next",
+        "url": "https://sectoday.tencent.com/info-today",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "安全文库",
+    "type": "folder",
+    "items": [
+      {
+        "title": "乌云(WooYun.org)历史漏洞查询---http://WY.ZONE.CI",
+        "url": "https://wy.zone.ci/",
+        "type": "link"
+      },
+      {
+        "title": "常见CMS 漏洞的目录",
+        "url": "https://www.hacking8.com/bug-web/",
+        "type": "link"
+      },
+      {
+        "title": "Vuls Wiki",
+        "url": "https://vuls.info/",
+        "type": "link"
+      },
+      {
+        "title": "Introduction - secskill",
+        "url": "https://ninjia.gitbook.io/secskill/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "web3",
+    "type": "folder",
+    "items": [
+      {
+        "title": "WTF Academy",
+        "url": "https://www.wtf.academy/learning-center",
+        "type": "link"
+      },
+      {
+        "title": "slowmist/Web3-Project-Security-Practice-Requirements",
+        "url": "https://github.com/slowmist/Web3-Project-Security-Practice-Requirements",
+        "type": "link"
+      },
+      {
+        "title": "Quillhash/Web3-Security-Tools: This repository contains a list of the most popular and widely used tools in web3 security. If you find any tools missing, you can create a pull request and be a contribute the project.",
+        "url": "https://github.com/Quillhash/Web3-Security-Tools",
+        "type": "link"
+      },
+      {
+        "title": "razzorsec/AuditorsRoadmap",
+        "url": "https://github.com/razzorsec/AuditorsRoadmap",
+        "type": "link"
+      },
+      {
+        "title": "transmissions11/solcurity: Opinionated security and code quality standard for Solidity smart contracts.",
+        "url": "https://github.com/transmissions11/solcurity",
+        "type": "link"
+      },
+      {
+        "title": "SunWeb3Sec/DeFiHackLabs: Reproduce DeFi hacked incidents using Foundry.",
+        "url": "https://github.com/SunWeb3Sec/DeFiHackLabs",
+        "type": "link"
+      },
+      {
+        "title": "DarkHandBook - Blockchain dark forest selfguard handbook - Master these, master the security of your cryptocurrency.",
+        "url": "https://darkhandbook.io/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "国家标准网站",
+    "type": "folder",
+    "items": [
+      {
+        "title": "UPBZ免费标准下载网",
+        "url": "http://www.upbz.net/index.html",
+        "type": "link"
+      },
+      {
+        "title": "如何规范有效的进行风险评估？ - FreeBuf网络安全行业门户",
+        "url": "https://www.freebuf.com/articles/security-management/224380.html",
+        "type": "link"
+      },
+      {
+        "title": "国家标准全文公开",
+        "url": "http://openstd.samr.gov.cn/bzgk/gb/;jsessionid=34B6627305AFAA56DBA19457E2AB6D1A",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "以图搜图",
+    "type": "folder",
+    "items": [
+      {
+        "title": "TinEye Reverse Image Search",
+        "url": "https://tineye.com/",
+        "type": "link"
+      },
+      {
+        "title": "Yandex Images: search for images online, image search",
+        "url": "https://yandex.com/images?",
+        "type": "link"
+      },
+      {
+        "title": "Google",
+        "url": "https://www.google.com/",
+        "type": "link"
+      },
+      {
+        "title": "imageSearch-最好用的以图搜图聚合站",
+        "url": "https://picfind.top/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "国外安全聚合网站",
+    "type": "folder",
+    "items": [
+      {
+        "title": "TruKno | Real-World Threat Intelligence",
+        "url": "https://www.trukno.com/dashboard/news",
+        "type": "link"
+      },
+      {
+        "title": "技术信息安全内容与讨论",
+        "url": "https://www.reddit.com/r/netsec/new/",
+        "type": "link"
+      },
+      {
+        "title": "安全事务 - 阅读、思考、分享......安全是每个人的责任",
+        "url": "https://securityaffairs.com/",
+        "type": "link"
+      },
+      {
+        "title": "电脑发出响声网络安全、技术新闻和支持 --- BleepingComputer | Cybersecurity, Technology News and Support",
+        "url": "https://www.bleepingcomputer.com/",
+        "type": "link"
+      },
+      {
+        "title": "The Hacker News | #1 Trusted Cybersecurity News Site",
+        "url": "https://thehackernews.com/",
+        "type": "link"
+      },
+      {
+        "title": "安全世界新闻",
+        "url": "https://www.secureworld.io/industry-news",
+        "type": "link"
+      },
+      {
+        "title": "网络安全新闻、见解和分析 |安全周刊 --- Cybersecurity News, Insights and Analysis | SecurityWeek",
+        "url": "https://www.securityweek.com/",
+        "type": "link"
+      },
+      {
+        "title": "Infosecurity Magazine - 信息安全和 IT 安全新闻和资源",
+        "url": "https://www.infosecurity-magazine.com/",
+        "type": "link"
+      },
+      {
+        "title": "Cyber Security News Today - Latest Updates & Research - Cybernews",
+        "url": "https://cybernews.com/",
+        "type": "link"
+      },
+      {
+        "title": "Home - Security Boulevard",
+        "url": "https://securityboulevard.com/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "CVE&POC",
+    "type": "folder",
+    "items": [
+      {
+        "title": "Vulnerability feed",
+        "url": "https://inthewild.io/feed",
+        "type": "link"
+      },
+      {
+        "title": "CVEShield",
+        "url": "https://www.cveshield.com/",
+        "type": "link"
+      },
+      {
+        "title": "活动提要 | AttackerKB",
+        "url": "https://attackerkb.com/activity-feed",
+        "type": "link"
+      },
+      {
+        "title": "漏洞数据库 🛡",
+        "url": "https://vuldb.com/zh/?",
+        "type": "link"
+      },
+      {
+        "title": "WordPress Vulnerability Database",
+        "url": "https://www.wordfence.com/threat-intel/vulnerabilities",
+        "type": "link"
+      },
+      {
+        "title": "CXSECURITY.COM Free Security List",
+        "url": "https://cxsecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "Published | Zero Day Initiative",
+        "url": "https://www.zerodayinitiative.com/advisories/published/",
+        "type": "link"
+      },
+      {
+        "title": "Vulert Vulnerability Database",
+        "url": "https://vulert.com/vuln-db/",
+        "type": "link"
+      },
+      {
+        "title": "NorthInfosec",
+        "url": "https://www.northinfosec.com/",
+        "type": "link"
+      },
+      {
+        "title": "0day.today Exploit Database : vulnerability : 0day : new exploits : buy and sell private exploit : shellcode by 0day Today Team",
+        "url": "https://0day.today/",
+        "type": "link"
+      },
+      {
+        "title": "Vulnerability DB | Snyk",
+        "url": "https://security.snyk.io/vuln",
+        "type": "link"
+      },
+      {
+        "title": "Topics | AttackerKB",
+        "url": "https://attackerkb.com/topics",
+        "type": "link"
+      },
+      {
+        "title": "日本漏洞说明",
+        "url": "https://jvn.jp/",
+        "type": "link"
+      },
+      {
+        "title": "Vulmon - 漏洞情报搜索引擎",
+        "url": "https://vulmon.com/",
+        "type": "link"
+      },
+      {
+        "title": "Current Common Vulnerabilities and Exposures",
+        "url": "https://feedly.com/cve",
+        "type": "link"
+      },
+      {
+        "title": "ExploitFinder - Enterprise Vulnerability Intelligence Platform",
+        "url": "https://exploitfinder.com/dbexploit/#exploits",
+        "type": "link"
+      },
+      {
+        "title": "CVE 人群 |目前 Fediverse 中讨论的 CVE",
+        "url": "https://cvecrowd.com/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "其他",
+    "type": "folder",
+    "items": [
+      {
+        "title": "动态 - 每日安全",
+        "url": "https://sec.today/pulses/",
+        "type": "link"
+      },
+      {
+        "title": "yarb/today.md at main · ufofly/yarb",
+        "url": "https://github.com/ufofly/yarb/blob/main/today.md",
+        "type": "link"
+      },
+      {
+        "title": "新闻 - Hackmanac",
+        "url": "https://hackmanac.com/news",
+        "type": "link"
+      },
+      {
+        "title": "仪表板 · Shadowserver 基金会",
+        "url": "https://dashboard.shadowserver.org/",
+        "type": "link"
+      },
+      {
+        "title": "KitPloit - 渗透测试和黑客工具 --- KitPloit - PenTest & Hacking Tools",
+        "url": "https://www.kitploit.com/",
+        "type": "link"
+      },
+      {
+        "title": "网络安全头条新闻存档 - CISO 系列",
+        "url": "https://cisoseries.com/category/podcast/cyber-security-headlines/",
+        "type": "link"
+      },
+      {
+        "title": "Computer Security News (BLOG) - Education improves awareness",
+        "url": "https://www.computersecuritynews.it/",
+        "type": "link"
+      },
+      {
+        "title": "gHacks Technology News and Advice",
+        "url": "https://www.ghacks.net/",
+        "type": "link"
+      },
+      {
+        "title": "家",
+        "url": "https://cispa.de/en",
+        "type": "link"
+      },
+      {
+        "title": "渗透测试工具 •",
+        "url": "https://meterpreter.org/",
+        "type": "link"
+      },
+      {
+        "title": "安天威胁情报中心",
+        "url": "https://www.antiycloud.com/#/antiy/safenotice",
+        "type": "link"
+      },
+      {
+        "title": "arXiv.org e-Print archive",
+        "url": "https://arxiv.org/",
+        "type": "link"
+      },
+      {
+        "title": "Technology News and Analysis - BetaNews",
+        "url": "https://betanews.com/",
+        "type": "link"
+      },
+      {
+        "title": "安全：每日新闻 - Punto Informatico 在线新闻",
+        "url": "https://www.punto-informatico.it/sicurezza/",
+        "type": "link"
+      },
+      {
+        "title": "HUNTERS INTERNATIONAL",
+        "url": "https://huntersinternational.su/companies/6513791368",
+        "type": "link"
+      },
+      {
+        "title": "ＨｉｄｅＺｅｒｏＯｎｅ - مرجع دانلود دوره های تست نفوذ و امنیتＨｉｄｅＺｅｒｏＯｎｅ",
+        "url": "https://hide01.ir/",
+        "type": "link"
+      },
+      {
+        "title": "Information Security News|Cyber Security|Hacking Tutorial",
+        "url": "https://www.securitynewspaper.com/",
+        "type": "link"
+      },
+      {
+        "title": "Магазин аккаунтов VK [АКТИВ] ВЫСОЧАЙШЕГО качества! ТОП категории в наличии! ✅15-17 | 18-25 | 25-60 | Москва 18-30✅",
+        "url": "https://hackway.rents.ac/",
+        "type": "link"
+      },
+      {
+        "title": "WildCard | 一分钟注册，轻松订阅海外软件服务",
+        "url": "https://bewildcard.com/service",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "title": "渗透测试 • 信息安全",
+    "url": "https://securityonline.info/",
+    "type": "link"
+  },
+  {
+    "title": "Cybersecurity News, Awards, Webinars, eSummits, Research | SC Media",
+    "url": "https://www.scmagazine.com/",
+    "type": "link"
+  },
+  {
+    "title": "Help Net Security - Cybersecurity News",
+    "url": "https://www.helpnetsecurity.com/",
+    "type": "link"
+  },
+  {
+    "title": "Hackread - Latest Cybersecurity News, Press Releases & Technology Today",
+    "url": "https://hackread.com/",
+    "type": "link"
+  },
+  {
+    "title": "安全实验室.ru",
+    "url": "https://www.securitylab.ru/",
+    "type": "link"
+  },
+  {
+    "title": "Cybersecurity News and Analysis | Cybersecurity Dive",
+    "url": "https://www.cybersecuritydive.com/",
+    "type": "link"
+  },
+  {
+    "title": "首页 | ITSec.Ru",
+    "url": "https://www.itsec.ru/",
+    "type": "link"
+  },
+  {
+    "title": "The Infosec Newsletter",
+    "url": "https://weekly.infosecwriteups.com/",
+    "type": "link"
+  },
+  {
+    "title": "Daily Dark Web",
+    "url": "https://dailydarkweb.net/",
+    "type": "link"
+  },
+  {
+    "title": "Cyber Security News - Latest Hacker and Security News Today",
+    "url": "https://cybersecuritynews.com/",
+    "type": "link"
+  },
+  {
+    "title": "Cyber​​ Daily - 网络新闻和分析",
+    "url": "https://www.cyberdaily.au/",
+    "type": "link"
+  },
+  {
+    "title": "安全新闻 • The Register",
+    "url": "https://www.theregister.com/security/",
+    "type": "link"
+  },
+  {
+    "title": "有威胁的饲料",
+    "url": "https://www.threatable.io/",
+    "type": "link"
+  },
+  {
+    "title": "主页 - Securityinfo.it",
+    "url": "https://www.securityinfo.it/",
+    "type": "link"
+  },
+  {
+    "title": "Security Archives - The Information Technology Daily",
+    "url": "https://securityexpress.info/category/security/",
+    "type": "link"
+  },
+  {
+    "title": "安全新闻 - 晨星安全",
+    "url": "https://morningstarsecurity.com/news",
+    "type": "link"
+  },
+  {
+    "title": "网络新闻：最新网络安全新闻与分析",
+    "url": "https://cyberpress.org/",
+    "type": "link"
+  },
+  {
+    "title": "Dark Web Informer - Coming Soon",
+    "url": "https://darkwebinformer.com/",
+    "type": "link"
+  },
+  {
+    "title": "DoingFedTime",
+    "url": "https://doingfedtime.com/",
+    "type": "link"
+  },
+  {
+    "title": "信息风险管理新闻、培训、教育 - InfoRiskToday",
+    "url": "https://www.inforisktoday.com/",
+    "type": "link"
+  },
+  {
+    "title": "Cyber​​ Express #1 值得信赖的网络安全新闻警报网站",
+    "url": "https://thecyberexpress.com/",
+    "type": "link"
+  },
+  {
+    "title": "安全新闻 | TechCrunch",
+    "url": "https://techcrunch.com/category/security/",
+    "type": "link"
+  },
+  {
+    "title": "Dark Reading | Security | Protect The Business",
+    "url": "https://www.darkreading.com/",
+    "type": "link"
+  },
+  {
+    "title": "Security | Ars Technica",
+    "url": "https://arstechnica.com/security/",
+    "type": "link"
+  },
+  {
+    "title": "Stega Cyber​​ Ops – 主动网络威胁情报的网络攻击",
+    "url": "https://stegaops.com/",
+    "type": "link"
+  },
+  {
+    "title": "White Intel",
+    "url": "https://platform.whiteintel.io/dashboard",
+    "type": "link"
+  },
+  {
+    "title": "Alerts and Advisories | Cyber.gov.au",
+    "url": "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories",
+    "type": "link"
+  },
+  {
+    "title": "Hackerdose | 今天解密明天",
+    "url": "https://hackerdose.com/",
+    "type": "link"
+  },
+  {
+    "title": "网络安全新闻 - 最新安全新闻 |安全杂志",
+    "url": "https://gbhackers.com/",
+    "type": "link"
+  },
+  {
+    "title": "404 媒体",
+    "url": "https://www.404media.co/",
+    "type": "link"
+  },
+  {
+    "title": "Data Breaches Digest",
+    "url": "https://www.dbdigest.com/",
+    "type": "link"
+  },
+  {
+    "title": "The Record from Recorded Future News",
+    "url": "https://therecord.media/",
+    "type": "link"
+  },
+  {
+    "title": "Articles | InfoStealers",
+    "url": "https://www.infostealers.com/learn-info-stealers/",
+    "type": "link"
+  },
+  {
+    "title": "最新黑客新闻 | 网络安全新闻、黑客工具和渗透测试课程 - LHN 为道德黑客、渗透测试人员、IT 安全专家以及基本上任何对网络安全世界感兴趣的人提供最新的黑客新闻、渗透测试工具和网络安全课程",
+    "url": "https://latesthackingnews.com/",
+    "type": "link"
+  },
+  {
+    "title": "安全新闻 | VentureBeat",
+    "url": "https://venturebeat.com/category/security/",
+    "type": "link"
+  },
+  {
+    "title": "News - Cybersecurity Insiders",
+    "url": "https://www.cybersecurity-insiders.com/",
+    "type": "link"
+  },
+  {
+    "title": "Cyber Defense Magazine | Cybersecurity Magazine - Daily News",
+    "url": "https://www.cyberdefensemagazine.com/",
+    "type": "link"
+  },
+  {
+    "title": "Research | Trellix Stories",
+    "url": "https://www.trellix.com/blogs/research/",
+    "type": "link"
+  },
+  {
+    "title": "网络空间安全科学学报",
+    "url": "https://www.journalofcybersec.com/CN/home",
+    "type": "link"
+  },
+  {
+    "title": "SecToday Next",
+    "url": "https://sectoday.tencent.com/",
+    "type": "link"
+  },
+  {
+    "title": "美国地图上显示最近的勒索软件攻击",
+    "url": "https://www.comparitech.com/ransomware-attack-map/",
+    "type": "link"
+  },
+  {
+    "title": "关于 - Infosec Exchange",
+    "url": "https://infosec.exchange/explore",
+    "type": "link"
+  },
+  {
+    "title": "Exploit Database - Exploits for Penetration Testers, Researchers, and Ethical Hackers",
+    "url": "https://www.exploit-db.com/",
+    "type": "link"
+  },
+  {
+    "title": "勒索信息",
+    "url": "https://www.ransomfeed.it/stats.php?page=country-list&country=China&y=0",
+    "type": "link"
+  },
+  {
+    "title": "oss-security mailing list",
+    "url": "https://www.openwall.com/lists/oss-security/",
+    "type": "link"
+  },
+  {
+    "title": "Ransomware.live - Victims from China",
+    "url": "https://www.ransomware.live/map/CN",
+    "type": "link"
+  },
+  {
+    "title": "Advisories | GitHub Security Lab",
+    "url": "https://securitylab.github.com/advisories/",
+    "type": "link"
+  },
+  {
+    "title": "SCI 公告 | INCIBE-CERT |意大利国际商业教育协会",
+    "url": "https://www.incibe.es/incibe-cert/alerta-temprana/avisos-sci",
+    "type": "link"
+  },
+  {
+    "title": "32x33 Institute",
+    "url": "https://32x33.institute/",
+    "type": "link"
+  },
+  {
+    "title": "Hacker News",
+    "url": "https://news.ycombinator.com/news",
+    "type": "link"
+  },
+  {
+    "title": "Zeli - 用中文阅读Hacker News和AI论文",
+    "url": "https://zeli.app/zh",
+    "type": "link"
+  },
+  {
+    "title": "Cyber​​Scoop | 突发网络安全新闻、公共部门威胁",
+    "url": "https://cyberscoop.com/",
+    "type": "link"
+  },
+  {
+    "title": "Indian - Computer Emergency Response Team",
+    "url": "https://www.cert-in.org.in/",
+    "type": "link"
+  },
+  {
+    "title": "V2EX › 信息安全",
+    "url": "https://www.v2ex.com/go/security",
+    "type": "link"
+  },
+  {
+    "title": "Blog - SOCRadar® Cyber Intelligence Inc.",
+    "url": "https://socradar.io/blog/",
+    "type": "link"
+  },
+  {
+    "title": "DataBreaches.Net – 安全不足的办公室",
+    "url": "https://databreaches.net/",
+    "type": "link"
+  },
+  {
+    "title": "OpenText 网络安全 | Webroot 社区",
+    "url": "https://community.opentextcybersecurity.com/",
+    "type": "link"
+  },
+  {
+    "title": "dev@tomcat.apache.org, past month - Apache Mail Archives",
+    "url": "https://lists.apache.org/list.html?dev@tomcat.apache.org",
+    "type": "link"
+  },
+  {
+    "title": "netzpolitik.org",
+    "url": "https://netzpolitik.org/",
+    "type": "link"
+  },
+  {
+    "title": "技术",
+    "url": "https://www.dailydot.com/topics/debug/",
+    "type": "link"
+  },
+  {
+    "title": "Home - Security Investigation",
+    "url": "https://www.socinvestigation.com/",
+    "type": "link"
+  },
+  {
+    "title": "SecurityBrief Australia - 为 CISO 和网络安全决策者提供技术新闻",
+    "url": "https://securitybrief.com.au/",
+    "type": "link"
+  },
+  {
+    "title": "消息",
+    "url": "https://www.websiteplanet.com/news/",
+    "type": "link"
+  },
+  {
+    "title": "CSO Online | 以业务速度保障安全",
+    "url": "https://www.csoonline.com/",
+    "type": "link"
+  },
+  {
+    "title": "首页 - 第一部门",
+    "url": "https://dept.one/",
+    "type": "link"
+  },
+  {
+    "title": "Computer Weekly | Information Technology (IT) News, UK IT Jobs, Industry News",
+    "url": "https://www.computerweekly.com/",
+    "type": "link"
+  },
+  {
+    "title": "Cyber Security News",
+    "url": "https://cybersecuritynews.com/amp/",
+    "type": "link"
+  },
+  {
+    "title": "InfoSec Diary Blog Archive - SANS Internet Storm Center",
+    "url": "https://isc.sans.edu/diaryarchive.html",
+    "type": "link"
+  },
+  {
+    "title": "安全杂志 | 面向安全高管的商业杂志",
+    "url": "https://www.securitymagazine.com/",
+    "type": "link"
+  },
+  {
+    "title": "Security Review Magazine - We bring you the latest from the IT and physical security industry in the Middle East and Africa region.",
+    "url": "https://securityreviewmag.com/",
+    "type": "link"
+  },
+  {
+    "title": "首页 - Osint10x",
+    "url": "https://osint10x.com/",
+    "type": "link"
+  },
+  {
+    "title": "Hack Reports - Latest Cybersecurity News, Trends & Updates",
+    "url": "https://news.hackreports.com/",
+    "type": "link"
+  },
+  {
+    "title": "Netzwelt - DER SPIEGEL明镜周刊",
+    "url": "https://www.spiegel.de/netzwelt/",
+    "type": "link"
+  },
+  {
+    "title": "BadCyber​​——让信息安全新闻再次伟大！",
+    "url": "https://badcyber.com/",
+    "type": "link"
+  },
+  {
+    "title": "Malware Patrol Blog | Malware Patrol",
+    "url": "https://www.malwarepatrol.net/onpatrol4malware-blog/",
+    "type": "link"
+  },
+  {
+    "title": "CCC | 主页",
+    "url": "https://www.ccc.de/en/",
+    "type": "link"
+  },
+  {
+    "title": "HACKHUNTING – 最新网络安全新闻和安全事件",
+    "url": "https://hackhunting.com/",
+    "type": "link"
+  },
+  {
+    "title": "Latest news Breaches, Hacks, & Protection Tips - Daily Security Review",
+    "url": "https://dailysecurityreview.com/",
+    "type": "link"
+  },
+  {
+    "name": "攻防知识库",
+    "type": "folder",
+    "items": [
+      {
+        "name": "个人网络安全白手册",
+        "type": "folder",
+        "items": [
+          {
+            "title": "ACSC - Home User Guide - FIRST STEPS",
+            "url": "https://www.cyber.gov.au/sites/default/files/2023-03/personal_cyber_security_guide_first_steps_simplified_chinese.pdf",
+            "type": "link"
+          },
+          {
+            "title": "数字防御",
+            "url": "https://digital-defense.io/?ref=32x33.institute",
+            "type": "link"
+          },
+          {
+            "title": "监视自卫",
+            "url": "https://ssd.eff.org/?ref=32x33.institute",
+            "type": "link"
+          }
+        ]
+      },
+      {
+        "title": "Hacking Articles - Raj Chandel&#39;s Blog",
+        "url": "https://www.hackingarticles.in/",
+        "type": "link"
+      },
+      {
+        "title": "项目主页 | 网络安全知识库",
+        "url": "https://wintrysec.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Web武器库",
+        "url": "https://wiki.timlzh.com/",
+        "type": "link"
+      },
+      {
+        "title": "PeiQi文库",
+        "url": "https://peiqi.wgpsec.org/",
+        "type": "link"
+      },
+      {
+        "title": "CKCsec安全研究院 | 面向网络安全从业者的知识文库",
+        "url": "https://wiki.ckcsec.cn/",
+        "type": "link"
+      },
+      {
+        "title": "数字取证与应急响应（DFIR)",
+        "url": "https://github.com/meirwah/awesome-incident-response/blob/master/README_ch.md#%E4%B9%A6%E7%B1%8D",
+        "type": "link"
+      },
+      {
+        "title": "index - 攻防对抗·蓝队清单",
+        "url": "https://blue.y1ng.org/",
+        "type": "link"
+      },
+      {
+        "title": "HackTricks | Chinese - Ht | HackTricks",
+        "url": "https://book.hacktricks.xyz/v/cn",
+        "type": "link"
+      },
+      {
+        "title": "看雪学苑-看雪-安全培训|安全招聘|www.kanxue.com",
+        "url": "https://www.kanxue.com/chm.htm",
+        "type": "link"
+      },
+      {
+        "title": "src导航站 · 白帽与安全 · 看云",
+        "url": "https://www.kancloud.cn/noahs/src_hacker/2120640",
+        "type": "link"
+      },
+      {
+        "title": "Introduction | secskill",
+        "url": "https://ninjia.gitbook.io/secskill",
+        "type": "link"
+      },
+      {
+        "title": "首页 - 白阁文库",
+        "url": "https://baizesec.github.io/bylibrary/",
+        "type": "link"
+      },
+      {
+        "title": "狼组安全团队公开知识库",
+        "url": "https://wiki.wgpsec.org/",
+        "type": "link"
+      },
+      {
+        "title": "T Wiki",
+        "url": "https://wiki.teamssix.com/",
+        "type": "link"
+      },
+      {
+        "title": "What is ired.team notes? | Red Team Notes",
+        "url": "https://www.ired.team/",
+        "type": "link"
+      },
+      {
+        "title": "GTFOBins",
+        "url": "https://gtfobins.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "DEF CON® 黑客大会主页",
+        "url": "https://defcon.org/",
+        "type": "link"
+      },
+      {
+        "title": "Introduction · GitBook",
+        "url": "https://drootkit.github.io/",
+        "type": "link"
+      },
+      {
+        "title": "Payloads All The Things",
+        "url": "https://swisskyrepo.github.io/PayloadsAllTheThings/",
+        "type": "link"
+      },
+      {
+        "title": "Google Dorking 在网络安全中 - Netlas 博客",
+        "url": "https://netlas.io/blog/google_dorking_in_cybersecurity/",
+        "type": "link"
+      },
+      {
+        "title": "Knowledge Base",
+        "url": "https://iq.thc.org/",
+        "type": "link"
+      },
+      {
+        "title": "主页 | Tib3rius",
+        "url": "https://tib3rius.com/",
+        "type": "link"
+      },
+      {
+        "title": "HackTricks | HackTricks",
+        "url": "https://book.hacktricks.xyz/",
+        "type": "link"
+      },
+      {
+        "title": "/home/six2dez/.pentest-book | Pentest Book",
+        "url": "https://pentestbook.six2dez.com/",
+        "type": "link"
+      },
+      {
+        "title": "Introduction | Bug Hunter Handbook",
+        "url": "https://gowthams.gitbook.io/bughunter-handbook",
+        "type": "link"
+      },
+      {
+        "title": "Internal All The Things",
+        "url": "https://swisskyrepo.github.io/InternalAllTheThings/",
+        "type": "link"
+      },
+      {
+        "title": "Introduction to Biscuit&#39;s Bug Bounty Playbook | Biscuit&#39;s Bug Bounty Playbook",
+        "url": "https://oreobiscuit.gitbook.io/introduction",
+        "type": "link"
+      },
+      {
+        "title": "Pentesting - SecurityBoat Workbook",
+        "url": "https://workbook.securityboat.net/Pentesting/",
+        "type": "link"
+      },
+      {
+        "title": "All of the Best Links and Resources on Cyber Security. | s0cm0nkey&#39;s Security Reference Guide",
+        "url": "https://s0cm0nkey.gitbook.io/s0cm0nkeys-security-reference-guide",
+        "type": "link"
+      },
+      {
+        "title": "Introduction | Book of BugBounty Tips",
+        "url": "https://gowsundar.gitbook.io/book-of-bugbounty-tips",
+        "type": "link"
+      },
+      {
+        "title": "API-Sec | Sec-88",
+        "url": "https://sallam.gitbook.io/sec-88/api-sec",
+        "type": "link"
+      },
+      {
+        "title": "‬⁣⁢﻿‍⁣﻿​‬⁡‍⁣​‬‍​​‬‌​‌‌⁢​​‍﻿‌﻿﻿⁣﻿⁤⁡‬​﻿​‌⁢⁢‌⁣​⁣​﻿⁢​网络安全攻防期末复习 - 飞书云文档",
+        "url": "https://uestc.feishu.cn/docx/FrIQduzecoB6plxC9hecENkMnMg",
+        "type": "link"
+      },
+      {
+        "title": "CobaltStrike系列 | Henry&#39;s Blog",
+        "url": "https://www.henry-blog.life/henry-blog",
+        "type": "link"
+      },
+      {
+        "title": "Threekiii/Awesome-Redteam: 一个攻防知识仓库 Red Teaming and Offensive Security",
+        "url": "https://github.com/Threekiii/Awesome-Redteam",
+        "type": "link"
+      },
+      {
+        "title": "UinIO.com 电子技术实验室",
+        "url": "http://www.uinio.com/",
+        "type": "link"
+      },
+      {
+        "title": "IoT Vulnerability Wiki",
+        "url": "https://iotsecurity.cxaqhq.cn/#/",
+        "type": "link"
+      },
+      {
+        "title": "eieio.games",
+        "url": "https://eieio.games/",
+        "type": "link"
+      },
+      {
+        "title": "link.beishanxueyuan.com",
+        "url": "https://link.beishanxueyuan.com/",
+        "type": "link"
+      },
+      {
+        "title": "SecBooks/【内网系列】intranet/最好用的内网穿透工具合集.md at main · SexyBeast233/SecBooks",
+        "url": "https://github.com/SexyBeast233/SecBooks/blob/main/%E3%80%90%E5%86%85%E7%BD%91%E7%B3%BB%E5%88%97%E3%80%91intranet/%E6%9C%80%E5%A5%BD%E7%94%A8%E7%9A%84%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%B7%A5%E5%85%B7%E5%90%88%E9%9B%86.md",
+        "type": "link"
+      },
+      {
+        "title": "SexyBeast233/SecBooks: 安全类各家文库大乱斗",
+        "url": "https://github.com/SexyBeast233/SecBooks/tree/main",
+        "type": "link"
+      },
+      {
+        "title": "Articles (cn-zh)",
+        "url": "https://arthurchiao.art/articles-zh/",
+        "type": "link"
+      },
+      {
+        "title": "TryHackMe | Cyber Security Training",
+        "url": "https://tryhackme.com/",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "SRC",
+    "type": "folder",
+    "items": [
+      {
+        "title": "Tsrc",
+        "url": "http://tsrc.tidesec.com/dashboard",
+        "type": "link"
+      },
+      {
+        "title": "乌云(WooYun.org)历史漏洞查询---http://WY.ZONE.CI",
+        "url": "http://wy.zone.ci/index.php",
+        "type": "link"
+      },
+      {
+        "title": "SRC导航 – 网络安全平台导航 | SRC平台 | 漏洞提交 | 安全应急响应中心 | 漏洞平台 | 众测平台",
+        "url": "http://www.newsrc.cn/",
+        "type": "link"
+      },
+      {
+        "title": "主页 | 教育漏洞报告平台(EDUSRC)",
+        "url": "https://src.sjtu.edu.cn/",
+        "type": "link"
+      },
+      {
+        "title": "FIRST - Improving Security Together",
+        "url": "https://www.first.org/",
+        "type": "link"
+      },
+      {
+        "title": "Google Dorks for Bug Bounty",
+        "url": "https://taksec.github.io/google-dorks-bug-bounty/",
+        "type": "link"
+      },
+      {
+        "title": "BurpSuite 忽略心跳包的优雅解法 | r0yanx&#39;s Blog",
+        "url": "https://r0yanx.com/2024/02/01/BurpSuite%E5%BF%BD%E7%95%A5%E5%BF%83%E8%B7%B3%E5%8C%85%E7%9A%84%E4%BC%98%E9%9B%85%E8%A7%A3%E6%B3%95/",
+        "type": "link"
+      },
+      {
+        "title": "huntr - The world’s first bug bounty platform for AI/ML",
+        "url": "https://huntr.com/",
+        "type": "link"
+      },
+      {
+        "title": "juice-shop/juice-shop: OWASP Juice Shop: Probably the most modern and sophisticated insecure web application",
+        "url": "https://github.com/juice-shop/juice-shop?tab=readme-ov-file",
+        "type": "link"
+      },
+      {
+        "title": "Pentester Land - Offensive InfoSec",
+        "url": "https://pentester.land/",
+        "type": "link"
+      },
+      {
+        "title": "en0th/ElectricRat: 电气鼠靶场系统是一种带有漏洞的Web应用程序，旨在为Web安全渗透测试学习者提供学习和实践的机会。The Electrical Mouse Target Range System is a web application with vulnerabilities designed to provide learning and practice opportunities for web security penetration testing learners.",
+        "url": "https://github.com/en0th/ElectricRat?tab=readme-ov-file",
+        "type": "link"
+      },
+      {
+        "title": "HackTools",
+        "url": "https://sanshiok.com/img/HackTools/index.html",
+        "type": "link"
+      }
+    ]
+  },
+  {
+    "name": "CVE&POC",
+    "type": "folder",
+    "items": [
+      {
+        "title": "Vulnerability feed",
+        "url": "https://inthewild.io/feed",
+        "type": "link"
+      },
+      {
+        "title": "CVEShield",
+        "url": "https://www.cveshield.com/",
+        "type": "link"
+      },
+      {
+        "title": "活动提要 | AttackerKB",
+        "url": "https://attackerkb.com/activity-feed",
+        "type": "link"
+      },
+      {
+        "title": "漏洞数据库 🛡",
+        "url": "https://vuldb.com/zh/?",
+        "type": "link"
+      },
+      {
+        "title": "WordPress Vulnerability Database",
+        "url": "https://www.wordfence.com/threat-intel/vulnerabilities",
+        "type": "link"
+      },
+      {
+        "title": "CXSECURITY.COM Free Security List",
+        "url": "https://cxsecurity.com/",
+        "type": "link"
+      },
+      {
+        "title": "Published | Zero Day Initiative",
+        "url": "https://www.zerodayinitiative.com/advisories/published/",
+        "type": "link"
+      },
+      {
+        "title": "Vulert Vulnerability Database",
+        "url": "https://vulert.com/vuln-db/",
+        "type": "link"
+      },
+      {
+        "title": "NorthInfosec",
+        "url": "https://www.northinfosec.com/",
+        "type": "link"
+      },
+      {
+        "title": "0day.today Exploit Database : vulnerability : 0day : new exploits : buy and sell private exploit : shellcode by 0day Today Team",
+        "url": "https://0day.today/",
+        "type": "link"
+      },
+      {
+        "title": "Vulnerability DB | Snyk",
+        "url": "https://security.snyk.io/vuln",
+        "type": "link"
+      },
+      {
+        "title": "Topics | AttackerKB",
+        "url": "https://attackerkb.com/topics",
+        "type": "link"
+      },
+      {
+        "title": "日本漏洞说明",
+        "url": "https://jvn.jp/",
+        "type": "link"
+      },
+      {
+        "title": "Vulmon - 漏洞情报搜索引擎",
+        "url": "https://vulmon.com/",
+        "type": "link"
+      },
+      {
+        "title": "Current Common Vulnerabilities and Exposures",
+        "url": "https://feedly.com/cve",
+        "type": "link"
+      },
+      {
+        "title": "ExploitFinder - Enterprise Vulnerability Intelligence Platform",
+        "url": "https://exploitfinder.com/dbexploit/#exploits",
+        "type": "link"
+      },
+      {
+        "title": "CVE 人群 |目前 Fediverse 中讨论的 CVE",
+        "url": "https://cvecrowd.com/",
+        "type": "link"
+      }
+    ]
+  }
+];
+
+        let activeCategory = null;
+        let activeSubCategory = null;
+
+        // 分类图标映射
+        const categoryIcons = {
+            '安全社区': '🛡️',
+            '安全研究员': '👨‍💻',
+            'OSINT': '🔍',
+            '国外安全实验室': '🌍',
+            '国内安全实验室': '🇨🇳',
+            '安全文库': '📚',
+            'web3': '⛓️',
+            '国家标准网站': '📋',
+            '以图搜图': '🖼️',
+            '国外安全聚合网站': '🌐',
+            'CVE&POC': '⚠️',
+            '其他': '📌',
+            '个人网络安全白手册': '📖',
+            '攻防知识库': '⚔️',
+            'SRC': '🎯',
+            '每日安全推送': '📰',
+        };
+
+        function getIcon(name) {
+            return categoryIcons[name] || '📁';
+        }
+
+        // 统计
+        function countItems(items) {
+            let folders = 0, links = 0;
+            for (const item of items) {
+                if (item.type === 'folder') {
+                    folders++;
+                    const [f, l] = countItems(item.items);
+                    folders += f;
+                    links += l;
+                } else {
+                    links++;
+                }
+            }
+            return [folders, links];
+        }
+
+        const [totalFolders, totalLinks] = countItems(bookmarkData);
+        document.getElementById('folderCount').textContent = totalFolders;
+        document.getElementById('linkCount').textContent = totalLinks;
+        document.getElementById('footerStats').textContent = `共 ${totalFolders} 个分类 · ${totalLinks} 个书签`;
+
+        // 计算单个分类的链接数
+        function countLinks(items) {
+            let count = 0;
+            for (const item of items) {
+                if (item.type === 'folder') {
+                    count += countLinks(item.items);
+                } else {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        // 渲染左侧导航
+        function renderSidebar() {
+            const nav = document.getElementById('sidebarNav');
+            nav.innerHTML = '';
+
+            // "全部"选项
+            const allBtn = document.createElement('button');
+            allBtn.className = 'nav-item active';
+            allBtn.innerHTML = `<span class="nav-icon">📚</span><span class="nav-text">全部书签</span><span class="nav-count">${totalLinks}</span>`;
+            allBtn.onclick = () => showAll();
+            nav.appendChild(allBtn);
+
+            // 各个分类
+            for (const cat of bookmarkData) {
+                if (cat.type !== 'folder') continue;
+                const linkCount = countLinks(cat.items);
+                const btn = document.createElement('button');
+                btn.className = 'nav-item';
+                btn.dataset.name = cat.name;
+                btn.innerHTML = `<span class="nav-icon">${getIcon(cat.name)}</span><span class="nav-text">${escapeHtml(cat.name)}</span><span class="nav-count">${linkCount}</span>`;
+                btn.onclick = () => showCategory(cat, btn);
+                nav.appendChild(btn);
+            }
+        }
+
+        // 显示全部
+        function showAll() {
+            activeCategory = null;
+            activeSubCategory = null;
+            setActiveNav(null);
+
+            document.getElementById('mainTitle').innerHTML = '<span class="main-title-icon">📚</span>全部书签';
+
+            // 显示所有分类的链接，按分类分组
+            const container = document.getElementById('mainContent');
+            container.innerHTML = '';
+
+            for (const cat of bookmarkData) {
+                if (cat.type !== 'folder') continue;
+
+                const section = document.createElement('div');
+                section.style.marginBottom = '32px';
+
+                const title = document.createElement('div');
+                title.style.cssText = 'font-size:1.05rem;font-weight:600;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:8px;cursor:pointer;';
+                title.innerHTML = `<span>${getIcon(cat.name)}</span><span>${escapeHtml(cat.name)}</span><span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(${countLinks(cat.items)})</span>`;
+                title.onclick = () => {
+                    const btn = document.querySelector(`[data-name="${escapeHtml(cat.name)}"]`);
+                    if (btn) btn.click();
+                };
+                section.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'links-grid animate-in';
+
+                // 收集该分类下所有链接（包括子分类）
+                const allLinks = collectLinks(cat.items);
+                for (const link of allLinks.slice(0, 12)) {
+                    grid.appendChild(createLinkCard(link));
+                }
+
+                if (allLinks.length > 12) {
+                    const more = document.createElement('div');
+                    more.style.cssText = 'grid-column:1/-1;text-align:center;padding:8px;color:var(--text-muted);font-size:0.85rem;cursor:pointer;';
+                    more.innerHTML = `+ 还有 ${allLinks.length - 12} 个书签，点击查看全部 →`;
+                    more.onclick = () => {
+                        const btn = document.querySelector(`[data-name="${escapeHtml(cat.name)}"]`);
+                        if (btn) btn.click();
+                    };
+                    grid.appendChild(more);
+                }
+
+                section.appendChild(grid);
+                container.appendChild(section);
+            }
+
+            hideSearch();
+        }
+
+        // 显示单个分类
+        function showCategory(cat, btnElement) {
+            activeCategory = cat;
+            activeSubCategory = null;
+            setActiveNav(btnElement);
+
+            document.getElementById('mainTitle').innerHTML = `<span class="main-title-icon">${getIcon(cat.name)}</span>${escapeHtml(cat.name)}`;
+
+            const container = document.getElementById('mainContent');
+            container.innerHTML = '';
+
+            // 检查是否有子分类
+            const subFolders = cat.items.filter(i => i.type === 'folder');
+            const directLinks = cat.items.filter(i => i.type === 'link');
+
+            // 子分类标签
+            if (subFolders.length > 0) {
+                const tagsWrap = document.createElement('div');
+                tagsWrap.className = 'sub-tags animate-in';
+
+                const allTag = document.createElement('span');
+                allTag.className = 'sub-tag active';
+                allTag.textContent = '全部';
+                allTag.onclick = () => showSubCategory(null, subFolders, directLinks, allTag);
+                tagsWrap.appendChild(allTag);
+
+                for (const sub of subFolders) {
+                    const tag = document.createElement('span');
+                    tag.className = 'sub-tag';
+                    tag.textContent = sub.name;
+                    tag.onclick = () => showSubCategory(sub, subFolders, directLinks, tag);
+                    tagsWrap.appendChild(tag);
+                }
+
+                container.appendChild(tagsWrap);
+            }
+
+            // 显示链接
+            const grid = document.createElement('div');
+            grid.className = 'links-grid animate-in';
+            grid.id = 'categoryGrid';
+
+            // 默认显示全部
+            const allLinks = collectLinks(cat.items);
+            for (const link of allLinks) {
+                grid.appendChild(createLinkCard(link));
+            }
+
+            container.appendChild(grid);
+            hideSearch();
+        }
+
+        // 显示子分类
+        function showSubCategory(sub, allSubs, directLinks, tagElement) {
+            activeSubCategory = sub;
+
+            // 更新标签状态
+            const tags = tagElement.parentElement.querySelectorAll('.sub-tag');
+            tags.forEach(t => t.classList.remove('active'));
+            tagElement.classList.add('active');
+
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+
+            let links = [];
+            if (sub) {
+                links = collectLinks(sub.items);
+            } else {
+                links = collectLinks([...directLinks, ...allSubs]);
+            }
+
+            for (const link of links) {
+                grid.appendChild(createLinkCard(link));
+            }
+        }
+
+        // 收集所有链接（递归）
+        function collectLinks(items) {
+            const links = [];
+            for (const item of items) {
+                if (item.type === 'folder') {
+                    links.push(...collectLinks(item.items));
+                } else {
+                    links.push(item);
+                }
+            }
+            return links;
+        }
+
+        // 创建链接卡片
+        function createLinkCard(link) {
+            const card = document.createElement('a');
+            card.className = 'link-card';
+            card.href = link.url;
+            card.target = '_blank';
+            card.rel = 'noopener noreferrer';
+
+            const domain = getDomain(link.url);
+            card.innerHTML = `
+                <div class="link-favicon">
+                    <img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" alt="" onerror="this.style.display='none';this.parentElement.textContent='🔗'">
+                </div>
+                <div class="link-info">
+                    <div class="link-title">${escapeHtml(link.title)}</div>
+                    <div class="link-url">${domain}</div>
+                </div>
+                <div class="link-arrow">→</div>
+            `;
+            return card;
+        }
+
+        // 设置导航激活状态
+        function setActiveNav(activeBtn) {
+            const items = document.querySelectorAll('.nav-item');
+            items.forEach(item => item.classList.remove('active'));
+            if (activeBtn) activeBtn.classList.add('active');
+            else items[0].classList.add('active');
+        }
+
+        // 搜索
+        function handleSearch(query) {
+            if (!query.trim()) {
+                hideSearch();
+                if (activeCategory) {
+                    const btn = document.querySelector(`[data-name="${activeCategory.name}"]`);
+                    if (btn) showCategory(activeCategory, btn);
+                    else showAll();
+                } else {
+                    showAll();
+                }
+                return;
+            }
+
+            const results = searchItems(bookmarkData, query.toLowerCase());
+            showSearchResults(results, query);
+        }
+
+        function searchItems(items, query) {
+            const results = [];
+            for (const item of items) {
+                if (item.type === 'folder') {
+                    results.push(...searchItems(item.items, query));
+                } else if (item.type === 'link') {
+                    if (item.title.toLowerCase().includes(query) || item.url.toLowerCase().includes(query)) {
+                        results.push(item);
+                    }
+                }
+            }
+            return results;
+        }
+
+        function showSearchResults(results, query) {
+            document.getElementById('mainContent').style.display = 'none';
+            document.querySelector('.main-header').style.display = 'none';
+            const overlay = document.getElementById('searchOverlay');
+            overlay.classList.add('active');
+
+            const grid = document.getElementById('searchGrid');
+
+            if (results.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column:1/-1;">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>未找到包含 "${escapeHtml(query)}" 的书签</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.querySelector('.search-title').innerHTML = `🔍 搜索结果 <span style="color:var(--text-muted);font-size:0.9rem;font-weight:400;">找到 ${results.length} 个书签</span>`;
+
+            grid.innerHTML = '';
+            for (const link of results) {
+                const card = createLinkCard(link);
+                // 高亮标题
+                const titleEl = card.querySelector('.link-title');
+                titleEl.innerHTML = highlightText(link.title, query);
+                grid.appendChild(card);
+            }
+        }
+
+        function hideSearch() {
+            document.getElementById('mainContent').style.display = 'block';
+            document.querySelector('.main-header').style.display = 'flex';
+            document.getElementById('searchOverlay').classList.remove('active');
+        }
+
+        function highlightText(text, query) {
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            return escapeHtml(text).replace(regex, '<span class="search-highlight">$1</span>');
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getDomain(url) {
+            try {
+                return new URL(url).hostname;
+            } catch {
+                return url;
+            }
+        }
+
+        // 初始化
+        renderSidebar();
+        showAll();
+    </script>
+</body>
+</html>
